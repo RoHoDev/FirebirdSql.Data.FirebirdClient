@@ -16,6 +16,7 @@
 //$Authors = Carlos Guzman Alvarez, Jiri Cincura (jiri@cincura.net)
 
 using System;
+using System.Threading.Tasks;
 
 namespace FirebirdSql.Data.Common
 {
@@ -25,8 +26,8 @@ namespace FirebirdSql.Data.Common
 
 		int Handle { get; }
 
-		void Attach(ServiceParameterBuffer spb, string dataSource, int port, string service, byte[] cryptKey);
-		void Detach();
+		Task Attach(ServiceParameterBuffer spb, string dataSource, int port, string service, byte[] cryptKey, AsyncWrappingCommonArgs async);
+		Task Detach(AsyncWrappingCommonArgs async);
 		void Start(ServiceParameterBuffer spb);
 		void Query(ServiceParameterBuffer spb, int requestLength, byte[] requestBuffer, int bufferLength, byte[] buffer);
 	}

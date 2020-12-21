@@ -24,6 +24,7 @@ using System.Net;
 using System.Collections.Generic;
 
 using FirebirdSql.Data.Common;
+using System.Threading.Tasks;
 
 namespace FirebirdSql.Data.Client.Managed.Version13
 {
@@ -33,8 +34,9 @@ namespace FirebirdSql.Data.Client.Managed.Version13
 			: base(connection)
 		{ }
 
-		public override void Attach(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public override async Task Attach(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				SendAttachToBuffer(dpb, database);
@@ -45,12 +47,12 @@ namespace FirebirdSql.Data.Client.Managed.Version13
 			}
 			catch (IscException)
 			{
-				SafelyDetach();
+				await SafelyDetach(async).ConfigureAwait(false);
 				throw;
 			}
 			catch (IOException ex)
 			{
-				SafelyDetach();
+				await SafelyDetach(async).ConfigureAwait(false);
 				throw IscException.ForErrorCode(IscCodes.isc_network_error, ex);
 			}
 
@@ -70,8 +72,9 @@ namespace FirebirdSql.Data.Client.Managed.Version13
 			Xdr.WriteBuffer(dpb.ToArray());
 		}
 
-		public override void CreateDatabase(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public override async Task CreateDatabase(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				SendCreateToBuffer(dpb, database);
@@ -99,14 +102,14 @@ namespace FirebirdSql.Data.Client.Managed.Version13
 			Xdr.WriteBuffer(dpb.ToArray());
 		}
 
-		public override void AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public override Task AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
-			Attach(dpb, dataSource, port, database, cryptKey);
+			return Attach(dpb, dataSource, port, database, cryptKey, async);
 		}
 
-		public override void CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public override Task CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
-			CreateDatabase(dpb, dataSource, port, database, cryptKey);
+			return CreateDatabase(dpb, dataSource, port, database, cryptKey, async);
 		}
 
 		public IResponse ProcessCryptCallbackResponseIfNeeded(IResponse response, byte[] cryptKey)

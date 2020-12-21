@@ -19,7 +19,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-
+using System.Threading;
+using System.Threading.Tasks;
 using FirebirdSql.Data.Common;
 using FirebirdSql.Data.FirebirdClient;
 
@@ -35,13 +36,15 @@ namespace FirebirdSql.Data.Services
 			: base(connectionString)
 		{ }
 
-		public void Execute()
+		public void Execute() => ExecuteImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public Task ExecuteAsync(CancellationToken cancellationToken = default) => ExecuteImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+		private async Task ExecuteImpl(AsyncWrappingCommonArgs async)
 		{
 			EnsureDatabase();
 
 			try
 			{
-				Open();
+				await Open(async).ConfigureAwait(false);
 				var startSpb = new ServiceParameterBuffer();
 				startSpb.Append(IscCodes.isc_action_svc_backup);
 				startSpb.Append(IscCodes.isc_spb_dbname, Database, SpbFilenameEncoding);
@@ -50,7 +53,7 @@ namespace FirebirdSql.Data.Services
 					startSpb.Append(IscCodes.isc_spb_bkp_skip_data, SkipData);
 				startSpb.Append(IscCodes.isc_spb_options, (int)Options);
 				StartTask(startSpb);
-				ReadOutput();
+				await ReadOutput(async).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -58,17 +61,17 @@ namespace FirebirdSql.Data.Services
 			}
 			finally
 			{
-				Close();
+				await Close(async).ConfigureAwait(false);
 			}
 		}
 
-		void ReadOutput()
+		Task ReadOutput(AsyncWrappingCommonArgs async)
 		{
-			Query(new byte[] { IscCodes.isc_info_svc_to_eof }, EmptySpb, (_, x) =>
+			return Query(new byte[] { IscCodes.isc_info_svc_to_eof }, EmptySpb, (_, x) =>
 			{
 				var buffer = x as byte[];
 				OutputStream.Write(buffer, 0, buffer.Length);
-			});
+			}, async);
 		}
 	}
 }

@@ -17,6 +17,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using FirebirdSql.Data.Common;
 
 namespace FirebirdSql.Data.Client.Native
@@ -72,7 +73,7 @@ namespace FirebirdSql.Data.Client.Native
 
 		#region Methods
 
-		public void Attach(ServiceParameterBuffer spb, string dataSource, int port, string service, byte[] cryptKey)
+		public Task Attach(ServiceParameterBuffer spb, string dataSource, int port, string service, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
 			FesDatabase.CheckCryptKeyForSupport(cryptKey);
 
@@ -91,9 +92,11 @@ namespace FirebirdSql.Data.Client.Native
 			ProcessStatusVector(_statusVector);
 
 			_handle = svcHandle;
+
+			return Task.CompletedTask;
 		}
 
-		public void Detach()
+		public Task Detach(AsyncWrappingCommonArgs async)
 		{
 			ClearStatusVector();
 
@@ -104,6 +107,8 @@ namespace FirebirdSql.Data.Client.Native
 			ProcessStatusVector(_statusVector);
 
 			_handle = svcHandle;
+
+			return Task.CompletedTask;
 		}
 
 		public void Start(ServiceParameterBuffer spb)

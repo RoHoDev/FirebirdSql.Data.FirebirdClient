@@ -48,8 +48,9 @@ namespace FirebirdSql.Data.Client.Managed.Version11
 			return new GdsStatement(this, transaction);
 		}
 
-		public override void AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public override async Task AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				using (var sspiHelper = new SspiHelper())
@@ -66,12 +67,12 @@ namespace FirebirdSql.Data.Client.Managed.Version11
 			}
 			catch (IscException)
 			{
-				SafelyDetach();
+				await SafelyDetach(async).ConfigureAwait(false);
 				throw;
 			}
 			catch (IOException ex)
 			{
-				SafelyDetach();
+				await SafelyDetach(async).ConfigureAwait(false);
 				throw IscException.ForErrorCode(IscCodes.isc_network_error, ex);
 			}
 
@@ -95,8 +96,9 @@ namespace FirebirdSql.Data.Client.Managed.Version11
 			}
 		}
 
-		public override void CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public override async Task CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			using (var sspiHelper = new SspiHelper())
 			{
 				var authData = sspiHelper.InitializeClientSecurity();

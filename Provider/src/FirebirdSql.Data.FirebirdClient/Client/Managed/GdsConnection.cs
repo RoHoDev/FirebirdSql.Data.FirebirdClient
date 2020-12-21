@@ -21,6 +21,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 using FirebirdSql.Data.Client.Managed.Version11;
 using FirebirdSql.Data.Client.Managed.Version13;
 using FirebirdSql.Data.Common;
@@ -81,11 +82,11 @@ namespace FirebirdSql.Data.Client.Managed
 
 		#region Methods
 
-		public void Connect()
+		public async Task Connect(AsyncWrappingCommonArgs async)
 		{
 			try
 			{
-				IPAddress = GetIPAddress(_dataSource);
+				IPAddress = await GetIPAddress(_dataSource, async).ConfigureAwait(false);
 				var endPoint = new IPEndPoint(IPAddress, _portNumber);
 
 				var socket = new Socket(IPAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -94,7 +95,7 @@ namespace FirebirdSql.Data.Client.Managed
 				socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 				socket.TrySetKeepAlive(KeepAliveTime, KeepAliveInterval);
 				socket.TryEnableLoopbackFastPath();
-				socket.Connect(endPoint);
+				await async.AsyncSyncCall(e => Task.Factory.FromAsync(socket.BeginConnect, socket.EndConnect, e, null), socket.Connect, endPoint).ConfigureAwait(false);
 
 				_firebirdNetworkStream = new FirebirdNetworkStream(new NetworkStream(socket, true));
 				Xdr = new XdrReaderWriter(_firebirdNetworkStream, _charset);
@@ -105,8 +106,9 @@ namespace FirebirdSql.Data.Client.Managed
 			}
 		}
 
-		public void Identify(string database)
+		public async Task Identify(string database, AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				Xdr.Write(IscCodes.op_connect);
@@ -256,14 +258,14 @@ namespace FirebirdSql.Data.Client.Managed
 
 		#region Private Methods
 
-		private IPAddress GetIPAddress(string dataSource)
+		private async Task<IPAddress> GetIPAddress(string dataSource, AsyncWrappingCommonArgs async)
 		{
 			if (IPAddress.TryParse(dataSource, out var ipaddress))
 			{
 				return ipaddress;
 			}
 
-			var addresses = Dns.GetHostEntry(dataSource).AddressList;
+			var addresses = (await async.AsyncSyncCall(Dns.GetHostEntryAsync, Dns.GetHostEntry, dataSource).ConfigureAwait(false)).AddressList;
 			foreach (var address in addresses)
 			{
 				// IPv4 priority

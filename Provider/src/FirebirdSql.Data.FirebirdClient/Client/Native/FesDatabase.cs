@@ -22,6 +22,7 @@ using System.Text;
 using FirebirdSql.Data.Common;
 using FirebirdSql.Data.Client.Native.Handle;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FirebirdSql.Data.Client.Native
 {
@@ -127,7 +128,7 @@ namespace FirebirdSql.Data.Client.Native
 
 		#region Database Methods
 
-		public void CreateDatabase(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public Task CreateDatabase(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
 			CheckCryptKeyForSupport(cryptKey);
 
@@ -145,14 +146,16 @@ namespace FirebirdSql.Data.Client.Native
 				0);
 
 			ProcessStatusVector(_statusVector);
+
+			return Task.CompletedTask;
 		}
 
-		public void CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public Task CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
 			throw new NotSupportedException("Trusted Auth isn't supported on Firebird Embedded.");
 		}
 
-		public void DropDatabase()
+		public Task DropDatabase(AsyncWrappingCommonArgs async)
 		{
 			ClearStatusVector();
 
@@ -161,6 +164,8 @@ namespace FirebirdSql.Data.Client.Native
 			ProcessStatusVector(_statusVector);
 
 			_handle.Dispose();
+
+			return Task.CompletedTask;
 		}
 
 		#endregion
@@ -172,7 +177,7 @@ namespace FirebirdSql.Data.Client.Native
 			throw new NotSupportedException();
 		}
 
-		public void QueueEvents(RemoteEvent events)
+		public Task QueueEvents(RemoteEvent events, AsyncWrappingCommonArgs async)
 		{
 			throw new NotSupportedException();
 		}
@@ -186,7 +191,7 @@ namespace FirebirdSql.Data.Client.Native
 
 		#region Methods
 
-		public void Attach(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public Task Attach(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
 			CheckCryptKeyForSupport(cryptKey);
 
@@ -205,14 +210,16 @@ namespace FirebirdSql.Data.Client.Native
 			ProcessStatusVector(_statusVector);
 
 			_serverVersion = GetServerVersion();
+
+			return Task.CompletedTask;
 		}
 
-		public void AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public Task AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
 			throw new NotSupportedException("Trusted Auth isn't supported on Firebird Embedded.");
 		}
 
-		public void Detach()
+		public Task Detach(AsyncWrappingCommonArgs async)
 		{
 			if (TransactionCount > 0)
 			{
@@ -237,6 +244,8 @@ namespace FirebirdSql.Data.Client.Native
 			_transactionCount = 0;
 			_dialect = 0;
 			_packetSize = 0;
+
+			return Task.CompletedTask;
 		}
 
 		#endregion

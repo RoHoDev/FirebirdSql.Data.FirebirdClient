@@ -17,6 +17,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using FirebirdSql.Data.Common;
 
 namespace FirebirdSql.Data.Client.Managed.Version10
@@ -75,8 +76,9 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 
 		#region Methods
 
-		public virtual void Attach(ServiceParameterBuffer spb, string dataSource, int port, string service, byte[] cryptKey)
+		public virtual async Task Attach(ServiceParameterBuffer spb, string dataSource, int port, string service, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				SendAttachToBuffer(spb, service);
@@ -85,7 +87,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			}
 			catch (IOException ex)
 			{
-				_database.Detach();
+				await _database.Detach(async).ConfigureAwait(false);
 				throw IscException.ForErrorCode(IscCodes.isc_network_error, ex);
 			}
 		}
@@ -103,8 +105,9 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			_handle = response.ObjectHandle;
 		}
 
-		public virtual void Detach()
+		public virtual async Task Detach(AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				_database.Xdr.Write(IscCodes.op_service_detach);

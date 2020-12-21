@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace FirebirdSql.Data.Common
 {
@@ -33,13 +34,13 @@ namespace FirebirdSql.Data.Common
 		bool HasRemoteEventSupport { get; }
 		bool ConnectionBroken { get; }
 
-		void Attach(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey);
-		void AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey);
-		void Detach();
+		Task Attach(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async);
+		Task AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async);
+		Task Detach(AsyncWrappingCommonArgs async);
 
-		void CreateDatabase(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey);
-		void CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey);
-		void DropDatabase();
+		Task CreateDatabase(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async);
+		Task CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async);
+		Task DropDatabase(AsyncWrappingCommonArgs async);
 
 		TransactionBase BeginTransaction(TransactionParameterBuffer tpb);
 
@@ -52,7 +53,7 @@ namespace FirebirdSql.Data.Common
 		List<object> GetDatabaseInfo(byte[] items, int bufferLength);
 
 		void CloseEventManager();
-		void QueueEvents(RemoteEvent events);
+		Task QueueEvents(RemoteEvent events, AsyncWrappingCommonArgs async);
 		void CancelEvents(RemoteEvent events);
 
 		void CancelOperation(int kind);

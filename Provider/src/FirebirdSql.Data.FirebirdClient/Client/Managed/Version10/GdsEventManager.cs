@@ -32,19 +32,28 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 	{
 		bool _disposing;
 		int _handle;
+		string _ipAddress;
+		int _portNumber;
 		GdsDatabase _database;
 
 		public GdsEventManager(int handle, string ipAddress, int portNumber)
 		{
 			_disposing = false;
 			_handle = handle;
-			var connection = new GdsConnection(ipAddress, portNumber);
-			connection.Connect();
+			_ipAddress = ipAddress;
+			_portNumber = portNumber;
+		}
+
+		public async Task Open(AsyncWrappingCommonArgs async)
+		{
+			var connection = new GdsConnection(_ipAddress, _portNumber);
+			await connection.Connect(async).ConfigureAwait(false);
 			_database = new GdsDatabase(connection);
 		}
 
 		public async Task WaitForEventsAsync(RemoteEvent remoteEvent)
 		{
+#warning ASYNC
 			while (true)
 			{
 				try
@@ -60,7 +69,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 							_database.Xdr.ReadBytes(ast, 8);
 							var eventId = _database.Xdr.ReadInt32();
 
-							remoteEvent.EventCounts(buffer);
+							await remoteEvent.EventCountsAsync(buffer).ConfigureAwait(false);
 
 							break;
 
@@ -73,7 +82,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 				{
 					return;
 				}
-				catch (Exception ex) when (!_disposing)
+				catch (Exception ex)
 				{
 					remoteEvent.EventError(ex);
 					break;

@@ -141,8 +141,9 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 
 		#region Attach/Detach Methods
 
-		public virtual void Attach(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public virtual async Task Attach(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				SendAttachToBuffer(dpb, database);
@@ -151,12 +152,12 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			}
 			catch (IscException)
 			{
-				SafelyDetach();
+				await SafelyDetach(async).ConfigureAwait(false);
 				throw;
 			}
 			catch (IOException ex)
 			{
-				SafelyDetach();
+				await SafelyDetach(async).ConfigureAwait(false);
 				throw IscException.ForErrorCode(IscCodes.isc_network_error, ex);
 			}
 
@@ -185,13 +186,14 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			_serverVersion = GetServerVersion();
 		}
 
-		public virtual void AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public virtual Task AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
 			throw new NotSupportedException("Trusted Auth isn't supported on < FB2.1.");
 		}
 
-		public virtual void Detach()
+		public virtual async Task Detach(AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			if (TransactionCount > 0)
 			{
 				throw IscException.ForErrorCodeIntParam(IscCodes.isc_open_trans, TransactionCount);
@@ -242,11 +244,11 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			}
 		}
 
-		protected void SafelyDetach()
+		protected async Task SafelyDetach(AsyncWrappingCommonArgs async)
 		{
 			try
 			{
-				Detach();
+				await Detach(async).ConfigureAwait(false);
 			}
 			catch
 			{ }
@@ -256,8 +258,9 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 
 		#region Database Methods
 
-		public virtual void CreateDatabase(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public virtual async Task CreateDatabase(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				SendCreateToBuffer(dpb, database);
@@ -287,13 +290,14 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			_handle = response.ObjectHandle;
 		}
 
-		public virtual void CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey)
+		public virtual Task CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
 			throw new NotSupportedException("Trusted Auth isn't supported on < FB2.1.");
 		}
 
-		public virtual void DropDatabase()
+		public virtual async Task DropDatabase(AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				Xdr.Write(IscCodes.op_drop_database);
@@ -389,14 +393,16 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			}
 		}
 
-		public void QueueEvents(RemoteEvent remoteEvent)
+		public async Task QueueEvents(RemoteEvent remoteEvent, AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				if (_eventManager == null)
 				{
 					ConnectionRequest(out var auxHandle, out var ipAddress, out var portNumber);
 					_eventManager = new GdsEventManager(auxHandle, ipAddress, portNumber);
+					await _eventManager.Open(async).ConfigureAwait(false);
 					var dummy = _eventManager.WaitForEventsAsync(remoteEvent);
 				}
 

@@ -16,6 +16,7 @@
 //$Authors = Carlos Guzman Alvarez, Jiri Cincura (jiri@cincura.net)
 
 using System.IO;
+using System.Threading.Tasks;
 using FirebirdSql.Data.Common;
 
 namespace FirebirdSql.Data.Client.Managed.Version13
@@ -26,8 +27,9 @@ namespace FirebirdSql.Data.Client.Managed.Version13
 			: base(connection)
 		{ }
 
-		public override void Attach(ServiceParameterBuffer spb, string dataSource, int port, string service, byte[] cryptKey)
+		public override async Task Attach(ServiceParameterBuffer spb, string dataSource, int port, string service, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
+#warning ASYNC
 			try
 			{
 				SendAttachToBuffer(spb, service);
@@ -38,7 +40,7 @@ namespace FirebirdSql.Data.Client.Managed.Version13
 			}
 			catch (IOException ex)
 			{
-				Database.Detach();
+				await Database.Detach(async).ConfigureAwait(false);
 				throw IscException.ForErrorCode(IscCodes.isc_network_error, ex);
 			}
 		}

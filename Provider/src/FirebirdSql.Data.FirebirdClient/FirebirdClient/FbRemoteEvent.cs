@@ -16,13 +16,13 @@
 //$Authors = Carlos Guzman Alvarez, Jiri Cincura (jiri@cincura.net)
 
 using System;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using FirebirdSql.Data.Common;
 
 namespace FirebirdSql.Data.FirebirdClient
 {
-	public sealed class FbRemoteEvent : IDisposable
+	public sealed class FbRemoteEvent : IDisposable, IAsyncDisposable
 	{
 		private FbConnectionInternal _connection;
 		private RemoteEvent _revent;
@@ -31,29 +31,39 @@ namespace FirebirdSql.Data.FirebirdClient
 		public event EventHandler<FbRemoteEventCountsEventArgs> RemoteEventCounts;
 		public event EventHandler<FbRemoteEventErrorEventArgs> RemoteEventError;
 
-		public string this[int index] => _revent.Events[index];
-		public int RemoteEventId => _revent?.RemoteId ?? -1;
+		public string this[int index] => _revent != null ? _revent.Events[index] : throw new InvalidOperationException();
+		public int RemoteEventId => _revent != null ? _revent.RemoteId : throw new InvalidOperationException();
 
 		public FbRemoteEvent(string connectionString)
 		{
 			_connection = new FbConnectionInternal(new ConnectionString(connectionString));
-			_connection.Connect();
+		}
+
+		public void Open() => OpenImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public Task OpenAsync(CancellationToken cancellationToken = default) => OpenImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+		private async Task OpenImpl(AsyncWrappingCommonArgs async)
+		{
+			await _connection.Connect(async).ConfigureAwait(false);
 			_revent = new RemoteEvent(_connection.Database);
 			_revent.EventCountsCallback = OnRemoteEventCounts;
 			_revent.EventErrorCallback = OnRemoteEventError;
 			_synchronizationContext = SynchronizationContext.Current ?? new SynchronizationContext();
 		}
 
-		public void Dispose()
+		public void Dispose() => DisposeImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public async ValueTask DisposeAsync() => await DisposeImpl(new AsyncWrappingCommonArgs(true, CancellationToken.None));
+		private Task DisposeImpl(AsyncWrappingCommonArgs async)
 		{
-			_connection.Dispose();
+			return _connection.Disconnect(async);
 		}
 
-		public void QueueEvents(params string[] events)
+		public void QueueEvents(params string[] events) => QueueEventsImpl(events, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public Task QueueEventsAsync(string[] events, CancellationToken cancellationToken = default) => QueueEventsImpl(events, new AsyncWrappingCommonArgs(true, cancellationToken));
+		private async Task QueueEventsImpl(string[] events, AsyncWrappingCommonArgs async)
 		{
 			try
 			{
-				_revent.QueueEvents(events);
+				await _revent.QueueEvents(events, async).ConfigureAwait(false);
 			}
 			catch (IscException ex)
 			{

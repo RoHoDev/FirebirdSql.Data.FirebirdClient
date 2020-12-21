@@ -19,40 +19,37 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using FirebirdSql.Data.Common;
 
 namespace FirebirdSql.Data.FirebirdClient
 {
+#warning ASYNC
 	sealed class FbConnectionPoolManager : IDisposable
 	{
 		internal static FbConnectionPoolManager Instance { get; private set; }
 
-		sealed class Pool : IDisposable
+		sealed class Item
 		{
-			sealed class Item : IDisposable
+			public long Created { get; private set; }
+			public FbConnectionInternal Connection { get; private set; }
+
+			public Item(long created, FbConnectionInternal connection)
 			{
-				bool _disposed;
-
-				public long Created { get; private set; }
-				public FbConnectionInternal Connection { get; private set; }
-
-				public Item(long created, FbConnectionInternal connection)
-				{
-					Created = created;
-					Connection = connection;
-				}
-
-				public void Dispose()
-				{
-					if (_disposed)
-						return;
-					_disposed = true;
-					Connection.Dispose();
-				}
+				Created = created;
+				Connection = connection;
 			}
 
+			public Task Release(AsyncWrappingCommonArgs async)
+			{
+				return Connection.Disconnect(async);
+			}
+		}
+
+		sealed class Pool : IDisposable
+		{
 			bool _disposed;
 			object _syncRoot;
 			ConnectionString _connectionString;
@@ -78,7 +75,7 @@ namespace FirebirdSql.Data.FirebirdClient
 				}
 			}
 
-			public FbConnectionInternal GetConnection(FbConnection owner)
+			public async ValueTask<FbConnectionInternal> GetConnection(FbConnection owner, AsyncWrappingCommonArgs async)
 			{
 				FbConnectionInternal connection;
 				bool createdNew;
@@ -91,7 +88,7 @@ namespace FirebirdSql.Data.FirebirdClient
 				}
 				if (createdNew)
 				{
-					connection.Connect();
+					await connection.Connect(async).ConfigureAwait(false);
 				}
 				connection.SetOwningConnection(owner);
 				return connection;
@@ -128,7 +125,7 @@ namespace FirebirdSql.Data.FirebirdClient
 						keep = keep.Concat(available.Except(keep).OrderByDescending(x => x.Created).Take(_connectionString.MinPoolSize - keepCount)).ToList();
 					}
 					var release = available.Except(keep).ToList();
-					Parallel.ForEach(release, x => x.Dispose());
+					Parallel.ForEach(release, x => x.Release(new AsyncWrappingCommonArgs(false, CancellationToken.None)));
 					_available = new Stack<Item>(keep);
 				}
 			}
@@ -147,7 +144,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			void CleanConnectionsImpl()
 			{
 				foreach (var item in _available)
-					item.Dispose();
+					item.Release(new AsyncWrappingCommonArgs(false, CancellationToken.None));
 			}
 
 			void CheckDisposedImpl()
@@ -196,11 +193,11 @@ namespace FirebirdSql.Data.FirebirdClient
 			_cleanupTimer = new Timer(CleanupCallback, null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
 		}
 
-		internal FbConnectionInternal Get(ConnectionString connectionString, FbConnection owner)
+		internal ValueTask<FbConnectionInternal> Get(ConnectionString connectionString, FbConnection owner, AsyncWrappingCommonArgs async)
 		{
 			CheckDisposed();
 
-			return _pools.GetOrAdd(connectionString.NormalizedConnectionString, _ => new Pool(connectionString)).GetConnection(owner);
+			return _pools.GetOrAdd(connectionString.NormalizedConnectionString, _ => new Pool(connectionString)).GetConnection(owner, async);
 		}
 
 		internal void Release(FbConnectionInternal connection, bool returnToAvailable)
@@ -244,10 +241,16 @@ namespace FirebirdSql.Data.FirebirdClient
 			Parallel.ForEach(_pools.Values, x => x.CleanupPool());
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		void CheckDisposed()
 		{
 			if (Volatile.Read(ref _disposed) == 1)
-				throw new ObjectDisposedException(nameof(FbConnectionPoolManager));
+				ThrowObjectDisposedException();
+		}
+
+		static void ThrowObjectDisposedException()
+		{
+			throw new ObjectDisposedException(nameof(FbConnectionPoolManager));
 		}
 	}
 }
