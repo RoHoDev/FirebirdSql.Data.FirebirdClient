@@ -16,6 +16,7 @@
 //$Authors = Jiri Cincura (jiri@cincura.net)
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -48,17 +49,35 @@ namespace FirebirdSql.Data.Common
 		{
 			return IsAsync ? asyncCall(arg1) : Task.FromResult(syncCall(arg1));
 		}
+
+		public Task AsyncSyncCall(Func<CancellationToken, Task> asyncCall, Action syncCall)
+		{
+			return IsAsync ? asyncCall(CancellationToken) : SyncTaskCompleted(syncCall);
+		}
+		public Task AsyncSyncCall(Func<Task> asyncCall, Action syncCall)
+		{
+			return IsAsync ? asyncCall() : SyncTaskCompleted(syncCall);
+		}
+		public Task AsyncSyncCall<T1>(Func<T1, CancellationToken, Task> asyncCall, Action<T1> syncCall, T1 arg1)
+		{
+			return IsAsync ? asyncCall(arg1, CancellationToken) : SyncTaskCompleted(syncCall, arg1);
+		}
 		public Task AsyncSyncCall<T1>(Func<T1, Task> asyncCall, Action<T1> syncCall, T1 arg1)
 		{
-			if (IsAsync)
-			{
-				return asyncCall(arg1);
-			}
-			else
-			{
-				syncCall(arg1);
-				return Task.CompletedTask;
-			}
+			return IsAsync ? asyncCall(arg1) : SyncTaskCompleted(syncCall, arg1);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static Task SyncTaskCompleted(Action sync)
+		{
+			sync();
+			return Task.CompletedTask;
+		}
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static Task SyncTaskCompleted<T1>(Action<T1> sync, T1 arg1)
+		{
+			sync(arg1);
+			return Task.CompletedTask;
 		}
 	}
 }

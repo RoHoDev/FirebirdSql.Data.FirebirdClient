@@ -267,9 +267,9 @@ namespace FirebirdSql.Data.Client.Managed
 
 		#region Write
 
-		public void Flush()
+		public Task Flush(AsyncWrappingCommonArgs async)
 		{
-			_stream.Flush();
+			return async.AsyncSyncCall(_stream.FlushAsync, _stream.Flush);
 		}
 
 		public void WriteBytes(byte[] buffer, int count)
