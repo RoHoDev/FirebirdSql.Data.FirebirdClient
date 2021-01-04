@@ -42,20 +42,20 @@ namespace FirebirdSql.Data.Common
 		Task CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async);
 		Task DropDatabase(AsyncWrappingCommonArgs async);
 
-		TransactionBase BeginTransaction(TransactionParameterBuffer tpb);
+		Task<TransactionBase> BeginTransaction(TransactionParameterBuffer tpb, AsyncWrappingCommonArgs async);
 
 		StatementBase CreateStatement();
 		StatementBase CreateStatement(TransactionBase transaction);
 
 		DatabaseParameterBufferBase CreateDatabaseParameterBuffer();
 
-		List<object> GetDatabaseInfo(byte[] items);
-		List<object> GetDatabaseInfo(byte[] items, int bufferLength);
+		Task<List<object>> GetDatabaseInfo(byte[] items, AsyncWrappingCommonArgs async);
+		Task<List<object>> GetDatabaseInfo(byte[] items, int bufferLength, AsyncWrappingCommonArgs async);
 
-		void CloseEventManager();
+		Task CloseEventManager(AsyncWrappingCommonArgs async);
 		Task QueueEvents(RemoteEvent events, AsyncWrappingCommonArgs async);
-		void CancelEvents(RemoteEvent events);
+		Task CancelEvents(RemoteEvent events, AsyncWrappingCommonArgs async);
 
-		void CancelOperation(int kind);
+		Task CancelOperation(int kind, AsyncWrappingCommonArgs async);
 	}
 }

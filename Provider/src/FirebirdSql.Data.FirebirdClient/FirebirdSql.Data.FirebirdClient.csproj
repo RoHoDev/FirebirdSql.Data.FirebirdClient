@@ -45,5 +45,11 @@
 	</ItemGroup>
 	<ItemGroup Condition="'$(TargetFramework)'=='net5.0'">
 	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="ConfigureAwaitChecker.Analyzer" Version="4.0.0">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	</ItemGroup>
 	<Import Project="..\FirebirdSql.Data.External\FirebirdSql.Data.External.projitems" Label="Shared" />
 </Project>

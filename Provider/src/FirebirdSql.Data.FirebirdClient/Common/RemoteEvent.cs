@@ -71,9 +71,9 @@ namespace FirebirdSql.Data.Common
 			return QueueEventsImpl(async);
 		}
 
-		public void CancelEvents()
+		public async Task CancelEvents(AsyncWrappingCommonArgs async)
 		{
-			_db.CancelEvents(this);
+			await _db.CancelEvents(this, async).ConfigureAwait(false);
 			_currentCounts = null;
 			_previousCounts = null;
 			_events.Clear();
@@ -85,7 +85,7 @@ namespace FirebirdSql.Data.Common
 			return _db.QueueEvents(this, async);
 		}
 
-		internal Task EventCountsAsync(byte[] buffer)
+		internal Task EventCounts(byte[] buffer, AsyncWrappingCommonArgs async)
 		{
 			if (Volatile.Read(ref _running) == 0)
 				return Task.CompletedTask;
@@ -116,7 +116,7 @@ namespace FirebirdSql.Data.Common
 				EventCountsCallback(_events[i], count);
 			}
 
-			return QueueEventsImpl(new AsyncWrappingCommonArgs(true, CancellationToken.None));
+			return QueueEventsImpl(async);
 		}
 
 		internal void EventError(Exception error)

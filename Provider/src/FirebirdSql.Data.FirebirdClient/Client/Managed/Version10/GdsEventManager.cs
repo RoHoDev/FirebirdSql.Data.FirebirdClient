@@ -16,11 +16,7 @@
 //$Authors = Carlos Guzman Alvarez, Jiri Cincura (jiri@cincura.net)
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,9 +24,9 @@ using FirebirdSql.Data.Common;
 
 namespace FirebirdSql.Data.Client.Managed.Version10
 {
-	internal class GdsEventManager : IDisposable
+	internal class GdsEventManager
 	{
-		bool _disposing;
+		bool _closing;
 		int _handle;
 		string _ipAddress;
 		int _portNumber;
@@ -38,7 +34,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 
 		public GdsEventManager(int handle, string ipAddress, int portNumber)
 		{
-			_disposing = false;
+			_closing = false;
 			_handle = handle;
 			_ipAddress = ipAddress;
 			_portNumber = portNumber;
@@ -51,25 +47,24 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			_database = new GdsDatabase(connection);
 		}
 
-		public async Task WaitForEventsAsync(RemoteEvent remoteEvent)
+		public async Task WaitForEvents(RemoteEvent remoteEvent, AsyncWrappingCommonArgs async)
 		{
-#warning ASYNC
 			while (true)
 			{
 				try
 				{
-					var operation = await _database.ReadOperationAsync().ConfigureAwait(false);
+					var operation = await _database.ReadOperation(async).ConfigureAwait(false);
 
 					switch (operation)
 					{
 						case IscCodes.op_event:
-							var dbHandle = _database.Xdr.ReadInt32();
-							var buffer = _database.Xdr.ReadBuffer();
+							var dbHandle = await _database.Xdr.ReadInt32(async).ConfigureAwait(false);
+							var buffer = await _database.Xdr.ReadBuffer(async).ConfigureAwait(false);
 							var ast = new byte[8];
-							_database.Xdr.ReadBytes(ast, 8);
-							var eventId = _database.Xdr.ReadInt32();
+							await _database.Xdr.ReadBytes(ast, 8, async).ConfigureAwait(false);
+							var eventId = await _database.Xdr.ReadInt32(async).ConfigureAwait(false);
 
-							await remoteEvent.EventCountsAsync(buffer).ConfigureAwait(false);
+							await remoteEvent.EventCounts(buffer, async).ConfigureAwait(false);
 
 							break;
 
@@ -78,7 +73,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 							break;
 					}
 				}
-				catch (Exception) when (_disposing)
+				catch (Exception) when (Volatile.Read(ref _closing))
 				{
 					return;
 				}
@@ -90,10 +85,10 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			}
 		}
 
-		public void Dispose()
+		public Task Close(AsyncWrappingCommonArgs async)
 		{
-			_disposing = true;
-			_database.CloseConnection();
+			Volatile.Write(ref _closing, true);
+			return _database.CloseConnection(async);
 		}
 	}
 }
