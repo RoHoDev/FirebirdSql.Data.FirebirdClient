@@ -286,7 +286,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 		protected Task ProcessCreateResponse(GenericResponse response, AsyncWrappingCommonArgs async)
 		{
 			_handle = response.ObjectHandle;
-			return Task.CompletedTask
+			return Task.CompletedTask;
 		}
 
 		public virtual Task CreateDatabaseWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)

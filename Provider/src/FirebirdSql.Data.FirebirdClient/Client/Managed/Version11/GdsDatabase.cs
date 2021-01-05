@@ -16,15 +16,10 @@
 //$Authors = Carlos Guzman Alvarez, Jiri Cincura (jiri@cincura.net), Vladimir Bodecek
 
 using System;
-using System.Data;
-using System.Globalization;
-using System.IO;
-using System.Text;
-using System.Net;
 using System.Collections.Generic;
-
-using FirebirdSql.Data.Common;
+using System.IO;
 using System.Threading.Tasks;
+using FirebirdSql.Data.Common;
 
 namespace FirebirdSql.Data.Client.Managed.Version11
 {
@@ -33,7 +28,7 @@ namespace FirebirdSql.Data.Client.Managed.Version11
 		public GdsDatabase(GdsConnection connection)
 			: base(connection)
 		{
-			DeferredPackets = new Queue<Action<IResponse>>();
+			DeferredPackets = new Queue<Func<IResponse, AsyncWrappingCommonArgs, Task>>();
 		}
 
 		public Queue<Func<IResponse, AsyncWrappingCommonArgs, Task>> DeferredPackets { get; private set; }
@@ -131,7 +126,7 @@ namespace FirebirdSql.Data.Client.Managed.Version11
 			return await base.ReadOperation(async).ConfigureAwait(false);
 		}
 
-		private Task ProcessDeferredPackets(AsyncWrappingCommonArgs async)
+		private async Task ProcessDeferredPackets(AsyncWrappingCommonArgs async)
 		{
 			if (DeferredPackets.Count > 0)
 			{

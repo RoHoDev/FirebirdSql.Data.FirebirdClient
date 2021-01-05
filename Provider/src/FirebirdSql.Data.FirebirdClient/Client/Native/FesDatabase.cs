@@ -172,7 +172,7 @@ namespace FirebirdSql.Data.Client.Native
 
 		#region Remote Events Methods
 
-		public void CloseEventManager()
+		public Task CloseEventManager(AsyncWrappingCommonArgs async)
 		{
 			throw new NotSupportedException();
 		}
@@ -182,7 +182,7 @@ namespace FirebirdSql.Data.Client.Native
 			throw new NotSupportedException();
 		}
 
-		public void CancelEvents(RemoteEvent events)
+		public Task CancelEvents(RemoteEvent events, AsyncWrappingCommonArgs async)
 		{
 			throw new NotSupportedException();
 		}
@@ -191,7 +191,7 @@ namespace FirebirdSql.Data.Client.Native
 
 		#region Methods
 
-		public Task Attach(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
+		public async Task Attach(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
 			CheckCryptKeyForSupport(cryptKey);
 
@@ -209,9 +209,7 @@ namespace FirebirdSql.Data.Client.Native
 
 			ProcessStatusVector(_statusVector);
 
-			_serverVersion = GetServerVersion();
-
-			return Task.CompletedTask;
+			_serverVersion = await GetServerVersion(async).ConfigureAwait(false);
 		}
 
 		public Task AttachWithTrustedAuth(DatabaseParameterBufferBase dpb, string dataSource, int port, string database, byte[] cryptKey, AsyncWrappingCommonArgs async)
@@ -252,25 +250,27 @@ namespace FirebirdSql.Data.Client.Native
 
 		#region Transaction Methods
 
-		public TransactionBase BeginTransaction(TransactionParameterBuffer tpb)
+		public Task<TransactionBase> BeginTransaction(TransactionParameterBuffer tpb, AsyncWrappingCommonArgs async)
 		{
 			var transaction = new FesTransaction(this);
 			transaction.BeginTransaction(tpb);
 
-			return transaction;
+			return Task.FromResult((TransactionBase)transaction);
 		}
 
 		#endregion
 
 		#region Cancel Methods
 
-		public void CancelOperation(int kind)
+		public Task CancelOperation(int kind, AsyncWrappingCommonArgs async)
 		{
 			var localStatusVector = new IntPtr[IscCodes.ISC_STATUS_LENGTH];
 
 			_fbClient.fb_cancel_operation(localStatusVector, ref _handle, kind);
 
 			ProcessStatusVector(localStatusVector);
+
+			return Task.CompletedTask;
 		}
 
 		#endregion
@@ -300,29 +300,30 @@ namespace FirebirdSql.Data.Client.Native
 
 		#region Database Information Methods
 
-		public string GetServerVersion()
+		public async Task<string> GetServerVersion(AsyncWrappingCommonArgs async)
 		{
+#warning This method is duplicate of what is in GdsDatabase
 			var items = new byte[]
 			{
 				IscCodes.isc_info_firebird_version,
 				IscCodes.isc_info_end
 			};
 
-			return GetDatabaseInfo(items, IscCodes.BUFFER_SIZE_128)[0].ToString();
+			return (await GetDatabaseInfo(items, IscCodes.BUFFER_SIZE_128, async).ConfigureAwait(false))[0].ToString();
 		}
 
-		public List<object> GetDatabaseInfo(byte[] items)
+		public Task<List<object>> GetDatabaseInfo(byte[] items, AsyncWrappingCommonArgs async)
 		{
-			return GetDatabaseInfo(items, IscCodes.DEFAULT_MAX_BUFFER_SIZE);
+			return GetDatabaseInfo(items, IscCodes.DEFAULT_MAX_BUFFER_SIZE, async);
 		}
 
-		public List<object> GetDatabaseInfo(byte[] items, int bufferLength)
+		public Task<List<object>> GetDatabaseInfo(byte[] items, int bufferLength, AsyncWrappingCommonArgs async)
 		{
 			var buffer = new byte[bufferLength];
 
 			DatabaseInfo(items, buffer, buffer.Length);
 
-			return IscHelper.ParseDatabaseInfo(buffer);
+			return Task.FromResult(IscHelper.ParseDatabaseInfo(buffer));
 		}
 
 		#endregion
