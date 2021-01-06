@@ -205,7 +205,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 
 				await SendInfoSqlToBuffer(StatementTypeInfoItems, IscCodes.STATEMENT_TYPE_BUFFER_SIZE, async).ConfigureAwait(false);
 				await _database.Xdr.Flush(async).ConfigureAwait(false);
-				StatementType = ProcessStatementTypeBuffer(await ProcessInfoSqlResponse(await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false));
+				StatementType = ProcessStatementTypeInfoBuffer(await ProcessInfoSqlResponse(await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false));
 
 				State = StatementState.Prepared;
 			}
@@ -218,7 +218,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 
 		public override async Task Execute(AsyncWrappingCommonArgs async)
 		{
-			EnsureNotDealocated();
+			EnsureNotDeallocated();
 
 			Clear();
 
@@ -258,7 +258,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 
 		public override async Task<DbValue[]> Fetch(AsyncWrappingCommonArgs async)
 		{
-			EnsureNotDealocated();
+			EnsureNotDeallocated();
 
 			if (StatementType == DbStatementType.StoredProcedure && !_allRowsFetched)
 			{

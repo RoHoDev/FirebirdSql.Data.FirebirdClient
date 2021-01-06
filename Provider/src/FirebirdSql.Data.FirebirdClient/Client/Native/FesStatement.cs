@@ -17,11 +17,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-
-using FirebirdSql.Data.Common;
-using FirebirdSql.Data.Client.Native.Marshalers;
+using System.Threading.Tasks;
 using FirebirdSql.Data.Client.Native.Handle;
+using FirebirdSql.Data.Client.Native.Marshalers;
+using FirebirdSql.Data.Common;
 
 namespace FirebirdSql.Data.Client.Native
 {
@@ -123,14 +122,14 @@ namespace FirebirdSql.Data.Client.Native
 
 		#endregion
 
-		#region IDisposable methods
+		#region Dispose2
 
-		public override void Dispose()
+		public override async Task Dispose2(AsyncWrappingCommonArgs async)
 		{
 			if (!_disposed)
 			{
 				_disposed = true;
-				Release();
+				await Release(async).ConfigureAwait(false);
 				Clear();
 				_db = null;
 				_fields = null;
@@ -141,7 +140,7 @@ namespace FirebirdSql.Data.Client.Native
 				_allRowsFetched = false;
 				_handle.Dispose();
 				FetchSize = 0;
-				base.Dispose();
+				await base.Dispose2(async).ConfigureAwait(false);
 			}
 		}
 
@@ -182,21 +181,21 @@ namespace FirebirdSql.Data.Client.Native
 
 		#region Methods
 
-		public override void Release()
+		public override Task Release(AsyncWrappingCommonArgs async)
 		{
 			XsqldaMarshaler.CleanUpNativeData(ref _fetchSqlDa);
 
-			base.Release();
+			return base.Release(async);
 		}
 
-		public override void Close()
+		public override Task Close(AsyncWrappingCommonArgs async)
 		{
 			XsqldaMarshaler.CleanUpNativeData(ref _fetchSqlDa);
 
-			base.Close();
+			return base.Close(async);
 		}
 
-		public override void Prepare(string commandText)
+		public override async Task Prepare(string commandText, AsyncWrappingCommonArgs async)
 		{
 			ClearAll();
 
@@ -233,7 +232,7 @@ namespace FirebirdSql.Data.Client.Native
 
 			if (_fields.ActualCount > 0 && _fields.ActualCount != _fields.Count)
 			{
-				Describe();
+				await Describe(async).ConfigureAwait(false);
 			}
 			else
 			{
@@ -245,17 +244,14 @@ namespace FirebirdSql.Data.Client.Native
 
 			_fields.ResetValues();
 
-			StatementType = GetStatementType();
+			StatementType = await GetStatementType(async).ConfigureAwait(false);
 
 			State = StatementState.Prepared;
 		}
 
-		public override void Execute()
+		public override async Task Execute(AsyncWrappingCommonArgs async)
 		{
-			if (State == StatementState.Deallocated)
-			{
-				throw new InvalidOperationException("Statment is not correctly created.");
-			}
+			EnsureNotDeallocated();
 
 			ClearStatusVector();
 
@@ -303,7 +299,7 @@ namespace FirebirdSql.Data.Client.Native
 
 			if (DoRecordsAffected)
 			{
-				RecordsAffected = GetRecordsAffected();
+				RecordsAffected = await GetRecordsAffected(async).ConfigureAwait(false);
 			}
 			else
 			{
@@ -313,28 +309,25 @@ namespace FirebirdSql.Data.Client.Native
 			State = StatementState.Executed;
 		}
 
-		public override DbValue[] Fetch()
+		public override Task<DbValue[]> Fetch(AsyncWrappingCommonArgs async)
 		{
-			DbValue[] row = null;
+			EnsureNotDeallocated();
 
-			if (State == StatementState.Deallocated)
-			{
-				throw new InvalidOperationException("Statement is not correctly created.");
-			}
 			if (StatementType == DbStatementType.StoredProcedure && !_allRowsFetched)
 			{
 				_allRowsFetched = true;
-				return _outputParams.Count > 0 ? _outputParams.Dequeue() : null;
+				return Task.FromResult(_outputParams.Count > 0 ? _outputParams.Dequeue() : null);
 			}
 			else if (StatementType == DbStatementType.Insert && _allRowsFetched)
 			{
-				return null;
+				return Task.FromResult<DbValue[]>(null);
 			}
 			else if (StatementType != DbStatementType.Select && StatementType != DbStatementType.SelectForUpdate)
 			{
-				return null;
+				return Task.FromResult<DbValue[]>(null);
 			}
 
+			DbValue[] row = null;
 			if (!_allRowsFetched)
 			{
 				_fields.ResetValues();
@@ -380,11 +373,10 @@ namespace FirebirdSql.Data.Client.Native
 					}
 				}
 			}
-
-			return row;
+			return Task.FromResult(row);
 		}
 
-		public override void Describe()
+		public override Task Describe(AsyncWrappingCommonArgs async)
 		{
 			ClearStatusVector();
 
@@ -406,9 +398,11 @@ namespace FirebirdSql.Data.Client.Native
 			_db.ProcessStatusVector(_statusVector);
 
 			_fields = descriptor;
+
+			return Task.CompletedTask;
 		}
 
-		public override void DescribeParameters()
+		public override Task DescribeParameters(AsyncWrappingCommonArgs async)
 		{
 			ClearStatusVector();
 
@@ -462,19 +456,21 @@ namespace FirebirdSql.Data.Client.Native
 			}
 
 			_parameters = descriptor;
+
+			return Task.CompletedTask;
 		}
 
 		#endregion
 
 		#region Protected Methods
 
-		protected override void Free(int option)
+		protected override Task Free(int option, AsyncWrappingCommonArgs async)
 		{
 			// Does	not	seem to	be possible	or necessary to	close
 			// an execute procedure	statement.
 			if (StatementType == DbStatementType.StoredProcedure && option == IscCodes.DSQL_close)
 			{
-				return;
+				return Task.CompletedTask;
 			}
 
 			ClearStatusVector();
@@ -494,6 +490,8 @@ namespace FirebirdSql.Data.Client.Native
 			_allRowsFetched = false;
 
 			_db.ProcessStatusVector(_statusVector);
+
+			return Task.CompletedTask;
 		}
 
 		protected override void TransactionUpdated(object sender, EventArgs e)
@@ -508,12 +506,11 @@ namespace FirebirdSql.Data.Client.Native
 			_allRowsFetched = false;
 		}
 
-		protected override byte[] GetSqlInfo(byte[] items, int bufferLength)
+		protected override Task<byte[]> GetSqlInfo(byte[] items, int bufferLength, AsyncWrappingCommonArgs async)
 		{
 			ClearStatusVector();
 
 			var buffer = new byte[bufferLength];
-
 
 			_db.FbClient.isc_dsql_sql_info(
 				_statusVector,
@@ -525,7 +522,7 @@ namespace FirebirdSql.Data.Client.Native
 
 			_db.ProcessStatusVector(_statusVector);
 
-			return buffer;
+			return Task.FromResult(buffer);
 		}
 
 		#endregion

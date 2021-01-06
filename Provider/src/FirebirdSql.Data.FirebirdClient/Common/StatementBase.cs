@@ -255,10 +255,10 @@ namespace FirebirdSql.Data.Common
 		protected async Task<DbStatementType> GetStatementType(AsyncWrappingCommonArgs async)
 		{
 			var buffer = await GetSqlInfo(StatementTypeInfoItems, IscCodes.STATEMENT_TYPE_BUFFER_SIZE, async).ConfigureAwait(false);
-			return ProcessStatementTypeBuffer(buffer);
+			return ProcessStatementTypeInfoBuffer(buffer);
 		}
 
-		protected DbStatementType ProcessStatementTypeBuffer(byte[] buffer)
+		protected DbStatementType ProcessStatementTypeInfoBuffer(byte[] buffer)
 		{
 			var stmtType = DbStatementType.None;
 			var pos = 0;
@@ -333,7 +333,7 @@ namespace FirebirdSql.Data.Common
 			}
 		}
 
-		protected void EnsureNotDealocated()
+		protected void EnsureNotDeallocated()
 		{
 			if (State == StatementState.Deallocated)
 			{
