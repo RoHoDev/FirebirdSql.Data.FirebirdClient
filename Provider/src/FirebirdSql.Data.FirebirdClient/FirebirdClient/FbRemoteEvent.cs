@@ -51,7 +51,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		public void Dispose() => DisposeImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public async ValueTask DisposeAsync() => await DisposeImpl(new AsyncWrappingCommonArgs(true, CancellationToken.None));
+		public async ValueTask DisposeAsync() => await DisposeImpl(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
 		private Task DisposeImpl(AsyncWrappingCommonArgs async)
 		{
 			return _connection.Disconnect(async);
@@ -71,11 +71,13 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public void CancelEvents()
+		public void CancelEvents() => CancelEventsImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public Task CancelEventsAsync(CancellationToken cancellationToken) => CancelEventsImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+		private async Task CancelEventsImpl(AsyncWrappingCommonArgs async)
 		{
 			try
 			{
-				_revent.CancelEvents();
+				await _revent.CancelEvents(async).ConfigureAwait(false);
 			}
 			catch (IscException ex)
 			{

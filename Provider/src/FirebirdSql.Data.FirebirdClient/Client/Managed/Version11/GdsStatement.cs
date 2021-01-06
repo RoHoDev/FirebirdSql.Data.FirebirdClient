@@ -79,7 +79,7 @@ namespace FirebirdSql.Data.Client.Managed.Version11
 
 					if (allocateResponse != null)
 					{
-						ProcessAllocateResponce(allocateResponse);
+						ProcessAllocateResponse(allocateResponse);
 					}
 					ProcessPrepareResponse(prepareResponse);
 					StatementType = ProcessStatementTypeInfoBuffer(ProcessInfoSqlResponse(statementTypeResponse));

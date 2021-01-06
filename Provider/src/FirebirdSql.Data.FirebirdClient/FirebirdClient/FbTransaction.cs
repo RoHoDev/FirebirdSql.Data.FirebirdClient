@@ -89,7 +89,7 @@ namespace FirebirdSql.Data.FirebirdClient
 						{
 							try
 							{
-								_transaction.Dispose();
+								_transaction.Release();
 							}
 							catch (IscException ex)
 							{
@@ -240,7 +240,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			_connection?.InnerConnection?.TransactionCompleted();
 			_connection = null;
-			_transaction.Dispose();
+			_transaction.Release();
 			_transaction = null;
 			_isCompleted = true;
 		}

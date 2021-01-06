@@ -28,7 +28,7 @@ namespace FirebirdSql.Data.Common
 
 		Task Attach(ServiceParameterBuffer spb, string dataSource, int port, string service, byte[] cryptKey, AsyncWrappingCommonArgs async);
 		Task Detach(AsyncWrappingCommonArgs async);
-		void Start(ServiceParameterBuffer spb);
-		void Query(ServiceParameterBuffer spb, int requestLength, byte[] requestBuffer, int bufferLength, byte[] buffer);
+		Task Start(ServiceParameterBuffer spb, AsyncWrappingCommonArgs async);
+		Task Query(ServiceParameterBuffer spb, int requestLength, byte[] requestBuffer, int bufferLength, byte[] buffer, AsyncWrappingCommonArgs async);
 	}
 }

@@ -111,7 +111,7 @@ namespace FirebirdSql.Data.Client.Native
 			return Task.CompletedTask;
 		}
 
-		public void Start(ServiceParameterBuffer spb)
+		public Task Start(ServiceParameterBuffer spb, AsyncWrappingCommonArgs async)
 		{
 			ClearStatusVector();
 
@@ -126,14 +126,17 @@ namespace FirebirdSql.Data.Client.Native
 				spb.ToArray());
 
 			ProcessStatusVector(_statusVector);
+
+			return Task.CompletedTask;
 		}
 
-		public void Query(
+		public Task Query(
 			ServiceParameterBuffer spb,
 			int requestLength,
 			byte[] requestBuffer,
 			int bufferLength,
-			byte[] buffer)
+			byte[] buffer,
+			AsyncWrappingCommonArgs async)
 		{
 			ClearStatusVector();
 
@@ -152,6 +155,8 @@ namespace FirebirdSql.Data.Client.Native
 				buffer);
 
 			ProcessStatusVector(_statusVector);
+
+			return Task.CompletedTask;
 		}
 
 		#endregion
