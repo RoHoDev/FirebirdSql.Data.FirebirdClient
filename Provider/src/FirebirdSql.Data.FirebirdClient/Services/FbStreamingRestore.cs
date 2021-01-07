@@ -79,7 +79,7 @@ namespace FirebirdSql.Data.Services
 				if (!string.IsNullOrEmpty(SkipData))
 					startSpb.Append(IscCodes.isc_spb_res_skip_data, SkipData);
 				startSpb.Append(IscCodes.isc_spb_options, (int)Options);
-				StartTask(startSpb);
+				await StartTask(startSpb, async).ConfigureAwait(false);
 				await ReadInput(async).ConfigureAwait(false);
 			}
 			catch (Exception ex)

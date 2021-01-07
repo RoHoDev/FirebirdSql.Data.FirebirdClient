@@ -29,14 +29,13 @@ namespace FirebirdSql.Data.Client.Managed.Version13
 
 		public override async Task Attach(ServiceParameterBuffer spb, string dataSource, int port, string service, byte[] cryptKey, AsyncWrappingCommonArgs async)
 		{
-#warning ASYNC
 			try
 			{
-				SendAttachToBuffer(spb, service);
-				Database.Xdr.Flush();
-				var response = Database.ReadResponse();
-				response = (Database as GdsDatabase).ProcessCryptCallbackResponseIfNeeded(response, cryptKey);
-				ProcessAttachResponse(response as GenericResponse);
+				await SendAttachToBuffer(spb, service, async).ConfigureAwait(false);
+				await Database.Xdr.Flush(async).ConfigureAwait(false);
+				var response = await Database.ReadResponse(async).ConfigureAwait(false);
+				response = await (Database as GdsDatabase).ProcessCryptCallbackResponseIfNeeded(response, cryptKey, async).ConfigureAwait(false);
+				await ProcessAttachResponse((GenericResponse)response, async).ConfigureAwait(false);
 			}
 			catch (IOException ex)
 			{

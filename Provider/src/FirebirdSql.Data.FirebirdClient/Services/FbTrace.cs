@@ -56,7 +56,7 @@ namespace FirebirdSql.Data.Services
 				if (!string.IsNullOrEmpty(sessionName))
 					startSpb.Append(IscCodes.isc_spb_trc_name, sessionName);
 				startSpb.Append(IscCodes.isc_spb_trc_cfg, config);
-				StartTask(startSpb);
+				await StartTask(startSpb, async).ConfigureAwait(false);
 				await ProcessServiceOutput(EmptySpb, async).ConfigureAwait(false);
 			}
 			catch (Exception ex)
@@ -106,7 +106,7 @@ namespace FirebirdSql.Data.Services
 				startSpb.Append(action);
 				if (sessionID.HasValue)
 					startSpb.Append(IscCodes.isc_spb_trc_id, (int)sessionID);
-				StartTask(startSpb);
+				await StartTask(startSpb, async).ConfigureAwait(false);
 				await ProcessServiceOutput(EmptySpb, async).ConfigureAwait(false);
 			}
 			catch (Exception ex)

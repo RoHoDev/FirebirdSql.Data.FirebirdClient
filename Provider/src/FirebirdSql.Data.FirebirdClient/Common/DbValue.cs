@@ -18,6 +18,7 @@
 using System;
 using System.Globalization;
 using System.Numerics;
+using System.Threading.Tasks;
 using FirebirdSql.Data.Types;
 
 namespace FirebirdSql.Data.Common
@@ -490,34 +491,34 @@ namespace FirebirdSql.Data.Common
 			}
 		}
 
-		private string GetClobData(long blobId)
+		private Task<string> GetClobData(long blobId, AsyncWrappingCommonArgs async)
 		{
 			var clob = _statement.CreateBlob(blobId);
 
-			return clob.ReadString();
+			return clob.ReadString(async);
 		}
 
-		private byte[] GetBlobData(long blobId)
+		private Task<byte[]> GetBlobData(long blobId, AsyncWrappingCommonArgs async)
 		{
 			var blob = _statement.CreateBlob(blobId);
 
-			return blob.Read();
+			return blob.Read(async);
 		}
 
-		private Array GetArrayData(long handle)
+		private async Task<Array> GetArrayData(long handle, AsyncWrappingCommonArgs async)
 		{
 			if (_field.ArrayHandle == null)
 			{
-				_field.ArrayHandle = _statement.CreateArray(handle, Field.Relation, Field.Name);
+				_field.ArrayHandle = await _statement.CreateArray(handle, Field.Relation, Field.Name, async).ConfigureAwait(false);
 			}
 
-			var gdsArray = _statement.CreateArray(_field.ArrayHandle.Descriptor);
+			var gdsArray = await _statement.CreateArray(_field.ArrayHandle.Descriptor, async).ConfigureAwait(false);
 
 			gdsArray.Handle = handle;
 			gdsArray.Database = _statement.Database;
 			gdsArray.Transaction = _statement.Transaction;
 
-			return gdsArray.Read();
+			return await gdsArray.Read(async).ConfigureAwait(false);
 		}
 	}
 }

@@ -575,6 +575,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			return Xdr.ReadOperation(async);
 		}
 
+#warning Remove this overload and make the TResponse flow more down
 		public Task<IResponse> ReadResponse(AsyncWrappingCommonArgs async) => ReadResponse<IResponse>(async);
 		public virtual async Task<TResponse> ReadResponse<TResponse>(AsyncWrappingCommonArgs async) where TResponse : IResponse
 		{
@@ -583,6 +584,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			return (TResponse)response;
 		}
 
+#warning Remove this overload and make the TResponse flow more down
 		public Task<IResponse> ReadResponse(int operation, AsyncWrappingCommonArgs async) => ReadResponse<IResponse>(operation, async);
 		public virtual async Task<TResponse> ReadResponse<TResponse>(int operation, AsyncWrappingCommonArgs async) where TResponse : IResponse
 		{

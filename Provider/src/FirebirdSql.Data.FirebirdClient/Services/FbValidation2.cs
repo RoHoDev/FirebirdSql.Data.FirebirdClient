@@ -58,7 +58,7 @@ namespace FirebirdSql.Data.Services
 					startSpb.Append(IscCodes.isc_spb_val_idx_excl, IndicesExclude);
 				if (LockTimeout.HasValue)
 					startSpb.Append(IscCodes.isc_spb_val_lock_timeout, (int)LockTimeout);
-				StartTask(startSpb);
+				await StartTask(startSpb, async).ConfigureAwait(false);
 				await ProcessServiceOutput(EmptySpb, async).ConfigureAwait(false);
 			}
 			catch (Exception ex)

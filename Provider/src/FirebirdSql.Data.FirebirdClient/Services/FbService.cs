@@ -150,14 +150,14 @@ namespace FirebirdSql.Data.Services
 			}
 		}
 
-		private protected void StartTask(ServiceParameterBuffer spb)
+		private protected async Task StartTask(ServiceParameterBuffer spb, AsyncWrappingCommonArgs async)
 		{
 			if (State == FbServiceState.Closed)
 				throw new InvalidOperationException("Service is Closed.");
 
 			try
 			{
-				_svc.Start(spb);
+				await _svc.Start(spb, async).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -355,7 +355,7 @@ namespace FirebirdSql.Data.Services
 			try
 			{
 				var buffer = new byte[QueryBufferSize];
-				_svc.Query(spb, items.Length, items, buffer.Length, buffer);
+				await _svc.Query(spb, items.Length, items, buffer.Length, buffer, async).ConfigureAwait(false);
 				return buffer;
 			}
 			finally

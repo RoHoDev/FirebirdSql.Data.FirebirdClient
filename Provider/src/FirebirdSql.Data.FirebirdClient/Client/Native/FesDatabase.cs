@@ -250,12 +250,11 @@ namespace FirebirdSql.Data.Client.Native
 
 		#region Transaction Methods
 
-		public Task<TransactionBase> BeginTransaction(TransactionParameterBuffer tpb, AsyncWrappingCommonArgs async)
+		public async Task<TransactionBase> BeginTransaction(TransactionParameterBuffer tpb, AsyncWrappingCommonArgs async)
 		{
 			var transaction = new FesTransaction(this);
-			transaction.BeginTransaction(tpb);
-
-			return Task.FromResult((TransactionBase)transaction);
+			await transaction.BeginTransaction(tpb, async).ConfigureAwait(false);
+			return transaction;
 		}
 
 		#endregion

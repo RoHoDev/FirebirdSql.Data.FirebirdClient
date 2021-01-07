@@ -55,7 +55,7 @@ namespace FirebirdSql.Data.Services
 				startSpb.Append(IscCodes.isc_spb_sec_groupname, user.GroupName);
 			if ((user.RoleName?.Length ?? 0) != 0)
 				startSpb.Append(IscCodes.isc_spb_sql_role_name, user.RoleName);
-			StartTask(startSpb);
+			await StartTask(startSpb, async).ConfigureAwait(false);
 			await Close(async).ConfigureAwait(false);
 		}
 
@@ -72,7 +72,7 @@ namespace FirebirdSql.Data.Services
 			startSpb.Append(IscCodes.isc_spb_sec_username, user.UserName);
 			if ((user.RoleName?.Length ?? 0) != 0)
 				startSpb.Append(IscCodes.isc_spb_sql_role_name, user.RoleName);
-			StartTask(startSpb);
+			await StartTask(startSpb, async).ConfigureAwait(false);
 			await Close(async).ConfigureAwait(false);
 		}
 
@@ -101,7 +101,7 @@ namespace FirebirdSql.Data.Services
 				startSpb.Append(IscCodes.isc_spb_sec_groupname, user.GroupName);
 			if ((user.RoleName?.Length ?? 0) != 0)
 				startSpb.Append(IscCodes.isc_spb_sql_role_name, user.RoleName);
-			StartTask(startSpb);
+			await StartTask(startSpb, async).ConfigureAwait(false);
 			await Close(async).ConfigureAwait(false);
 		}
 
@@ -113,7 +113,7 @@ namespace FirebirdSql.Data.Services
 			var startSpb = new ServiceParameterBuffer();
 			startSpb.Append(IscCodes.isc_action_svc_display_user);
 			startSpb.Append(IscCodes.isc_spb_sec_username, userName);
-			StartTask(startSpb);
+			await StartTask(startSpb, async).ConfigureAwait(false);
 			var info = await Query(new byte[] { IscCodes.isc_info_svc_get_users }, EmptySpb, async).ConfigureAwait(false);
 			await Close(async).ConfigureAwait(false);
 			return ((FbUserData[])info.FirstOrDefault())?.FirstOrDefault();
@@ -126,7 +126,7 @@ namespace FirebirdSql.Data.Services
 			await Open(async).ConfigureAwait(false);
 			var startSpb = new ServiceParameterBuffer();
 			startSpb.Append(IscCodes.isc_action_svc_display_user);
-			StartTask(startSpb);
+			await StartTask(startSpb, async).ConfigureAwait(false);
 			var info = await Query(new byte[] { IscCodes.isc_info_svc_get_users }, EmptySpb, async).ConfigureAwait(false);
 			await Close(async).ConfigureAwait(false);
 			return (FbUserData[])info.FirstOrDefault();

@@ -177,9 +177,9 @@ namespace FirebirdSql.Data.Common
 		public abstract BlobBase CreateBlob();
 		public abstract BlobBase CreateBlob(long handle);
 
-		public abstract ArrayBase CreateArray(ArrayDesc descriptor);
-		public abstract ArrayBase CreateArray(string tableName, string fieldName);
-		public abstract ArrayBase CreateArray(long handle, string tableName, string fieldName);
+		public abstract Task<ArrayBase> CreateArray(ArrayDesc descriptor, AsyncWrappingCommonArgs async);
+		public abstract Task<ArrayBase> CreateArray(string tableName, string fieldName, AsyncWrappingCommonArgs async);
+		public abstract Task<ArrayBase> CreateArray(long handle, string tableName, string fieldName, AsyncWrappingCommonArgs async);
 
 		#endregion
 

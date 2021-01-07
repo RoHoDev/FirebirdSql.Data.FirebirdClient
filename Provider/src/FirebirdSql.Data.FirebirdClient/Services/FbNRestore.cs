@@ -50,7 +50,7 @@ namespace FirebirdSql.Data.Services
 					startSpb.Append(IscCodes.isc_spb_nbk_file, file, SpbFilenameEncoding);
 				}
 				startSpb.Append(IscCodes.isc_spb_nbk_direct, DirectIO ? "ON" : "OFF");
-				StartTask(startSpb);
+				await StartTask(startSpb, async).ConfigureAwait(false);
 				await ProcessServiceOutput(EmptySpb, async).ConfigureAwait(false);
 			}
 			catch (Exception ex)

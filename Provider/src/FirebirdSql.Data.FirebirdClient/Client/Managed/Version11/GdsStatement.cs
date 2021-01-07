@@ -83,7 +83,7 @@ namespace FirebirdSql.Data.Client.Managed.Version11
 				}
 				finally
 				{
-					SafeFinishFetching(ref numberOfResponses);
+					numberOfResponses = await SafeFinishFetching(numberOfResponses, async).ConfigureAwait(false);
 				}
 
 				State = StatementState.Prepared;

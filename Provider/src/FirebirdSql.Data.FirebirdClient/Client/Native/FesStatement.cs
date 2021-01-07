@@ -162,19 +162,25 @@ namespace FirebirdSql.Data.Client.Native
 
 		#region Array Creation Methods
 
-		public override ArrayBase CreateArray(ArrayDesc descriptor)
+		public override async Task<ArrayBase> CreateArray(ArrayDesc descriptor, AsyncWrappingCommonArgs async)
 		{
-			return new FesArray(descriptor);
+			var array = new FesArray(descriptor);
+			await array.Initialize(async).ConfigureAwait(false);
+			return array;
 		}
 
-		public override ArrayBase CreateArray(string tableName, string fieldName)
+		public override async Task<ArrayBase> CreateArray(string tableName, string fieldName, AsyncWrappingCommonArgs async)
 		{
-			return new FesArray(_db, _transaction, tableName, fieldName);
+			var array = new FesArray(_db, _transaction, tableName, fieldName);
+			await array.Initialize(async).ConfigureAwait(false);
+			return array;
 		}
 
-		public override ArrayBase CreateArray(long handle, string tableName, string fieldName)
+		public override async Task<ArrayBase> CreateArray(long handle, string tableName, string fieldName, AsyncWrappingCommonArgs async)
 		{
-			return new FesArray(_db, _transaction, handle, tableName, fieldName);
+			var array = new FesArray(_db, _transaction, handle, tableName, fieldName);
+			await array.Initialize(async).ConfigureAwait(false);
+			return array;
 		}
 
 		#endregion

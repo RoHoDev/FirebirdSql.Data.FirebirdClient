@@ -44,7 +44,7 @@ namespace FirebirdSql.Data.Services
 				startSpb.Append(IscCodes.isc_action_svc_repair);
 				startSpb.Append(IscCodes.isc_spb_dbname, Database, SpbFilenameEncoding);
 				startSpb.Append(IscCodes.isc_spb_options, (int)Options);
-				StartTask(startSpb);
+				await StartTask(startSpb, async).ConfigureAwait(false);
 				await ProcessServiceOutput(EmptySpb, async).ConfigureAwait(false);
 			}
 			catch (Exception ex)

@@ -13,7 +13,7 @@
  *    All Rights Reserved.
  */
 
-//$Authors = Carlos Guzman Alvarez
+//$Authors = Carlos Guzman Alvarez, Jiri Cincura (jiri@cincura.net)
 
 using System;
 using System.Threading;
@@ -38,7 +38,7 @@ namespace FirebirdSql.Data.Services
 				await Open(async).ConfigureAwait(false);
 				var startSpb = new ServiceParameterBuffer();
 				startSpb.Append(IscCodes.isc_action_svc_get_ib_log);
-				StartTask(startSpb);
+				await StartTask(startSpb, async).ConfigureAwait(false);
 				await ProcessServiceOutput(EmptySpb, async).ConfigureAwait(false);
 			}
 			catch (Exception ex)
