@@ -80,7 +80,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			get { return _options; }
 		}
 
-		public bool CancelDisabled { get; set; }
+		public bool CancelDisabled { get; private set; }
 
 		#endregion
 
@@ -226,14 +226,12 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		public async Task<FbTransaction> BeginTransaction(IsolationLevel level, string transactionName, AsyncWrappingCommonArgs async)
 		{
-#warning ASYNC
-			await Task.CompletedTask;
 			EnsureActiveTransaction();
 
 			try
 			{
 				_activeTransaction = new FbTransaction(_owningConnection, level);
-				_activeTransaction.BeginTransaction();
+				await _activeTransaction.BeginTransaction(async).ConfigureAwait(false);
 
 				if (transactionName != null)
 				{
@@ -251,14 +249,12 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		public async Task<FbTransaction> BeginTransaction(FbTransactionOptions options, string transactionName, AsyncWrappingCommonArgs async)
 		{
-#warning ASYNC
-			await Task.CompletedTask;
 			EnsureActiveTransaction();
 
 			try
 			{
 				_activeTransaction = new FbTransaction(_owningConnection, IsolationLevel.Unspecified);
-				_activeTransaction.BeginTransaction(options);
+				await _activeTransaction.BeginTransaction(options, async).ConfigureAwait(false);
 
 				if (transactionName != null)
 				{
@@ -392,12 +388,13 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		#region Firebird Events Methods
 
-		public void CloseEventManager()
+		public Task CloseEventManager(AsyncWrappingCommonArgs async)
 		{
 			if (_db != null && _db.HasRemoteEventSupport)
 			{
-				_db.CloseEventManager();
+				return _db.CloseEventManager(async);
 			}
+			return Task.CompletedTask;
 		}
 
 		#endregion
@@ -500,21 +497,21 @@ namespace FirebirdSql.Data.FirebirdClient
 		#endregion
 
 		#region Cancelation
-		public void EnableCancel()
+		public async Task EnableCancel(AsyncWrappingCommonArgs async)
 		{
-			_db.CancelOperation(IscCodes.fb_cancel_enable);
+			await _db.CancelOperation(IscCodes.fb_cancel_enable, async).ConfigureAwait(false);
 			CancelDisabled = false;
 		}
 
-		public void DisableCancel()
+		public async Task DisableCancel(AsyncWrappingCommonArgs async)
 		{
-			_db.CancelOperation(IscCodes.fb_cancel_disable);
+			await _db.CancelOperation(IscCodes.fb_cancel_disable, async).ConfigureAwait(false);
 			CancelDisabled = true;
 		}
 
-		public void CancelCommand()
+		public Task CancelCommand(AsyncWrappingCommonArgs async)
 		{
-			_db.CancelOperation(IscCodes.fb_cancel_raise);
+			return _db.CancelOperation(IscCodes.fb_cancel_raise, async);
 		}
 		#endregion
 

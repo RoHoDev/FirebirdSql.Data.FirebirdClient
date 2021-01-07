@@ -16,14 +16,11 @@
 //$Authors = Carlos Guzman Alvarez, Jiri Cincura (jiri@cincura.net)
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
-using System.Globalization;
 using System.Text;
-using System.Collections.Generic;
-using System.Diagnostics;
-
 using FirebirdSql.Data.Common;
 using FirebirdSql.Data.Logging;
 

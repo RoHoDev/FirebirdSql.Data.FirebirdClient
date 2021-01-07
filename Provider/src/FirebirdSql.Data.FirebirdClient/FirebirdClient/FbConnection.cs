@@ -480,7 +480,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			{
 				try
 				{
-					_innerConnection.CloseEventManager();
+					await _innerConnection.CloseEventManager(async).ConfigureAwait(false);
 
 					if (_innerConnection.Database != null)
 					{
@@ -495,7 +495,7 @@ namespace FirebirdSql.Data.FirebirdClient
 					{
 						if (_innerConnection.CancelDisabled)
 						{
-							_innerConnection.EnableCancel();
+							await _innerConnection.EnableCancel(async).ConfigureAwait(false);
 						}
 
 						var broken = _innerConnection.Database.ConnectionBroken;
@@ -558,25 +558,31 @@ namespace FirebirdSql.Data.FirebirdClient
 		#endregion
 
 		#region Cancelation
-		public void EnableCancel()
+		public void EnableCancel() => EnableCancelImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public Task EnableCancelAsync(CancellationToken cancellationToken = default) => EnableCancelImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+		private Task EnableCancelImpl(AsyncWrappingCommonArgs async)
 		{
 			CheckClosed();
 
-			_innerConnection.EnableCancel();
+			return _innerConnection.EnableCancel(async);
 		}
 
-		public void DisableCancel()
+		public void DisableCancel() => DisableCancelImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public Task DisableCancelAsync(CancellationToken cancellationToken = default) => DisableCancelImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+		private Task DisableCancelImpl(AsyncWrappingCommonArgs async)
 		{
 			CheckClosed();
 
-			_innerConnection.DisableCancel();
+			return _innerConnection.DisableCancel(async);
 		}
 
-		internal void CancelCommand()
+		public void CancelCommand() => CancelCommandImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public Task CancelCommandAsync(CancellationToken cancellationToken = default) => CancelCommandImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+		private Task CancelCommandImpl(AsyncWrappingCommonArgs async)
 		{
 			CheckClosed();
 
-			_innerConnection.CancelCommand();
+			return _innerConnection.CancelCommand(async);
 		}
 		#endregion
 
