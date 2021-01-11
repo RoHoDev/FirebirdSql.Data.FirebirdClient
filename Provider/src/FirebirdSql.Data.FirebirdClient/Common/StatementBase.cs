@@ -173,6 +173,8 @@ namespace FirebirdSql.Data.Common
 		public abstract Task Prepare(string commandText, AsyncWrappingCommonArgs async);
 		public abstract Task Execute(AsyncWrappingCommonArgs async);
 		public abstract Task<DbValue[]> Fetch(AsyncWrappingCommonArgs async);
+#warning Same implementation in Gds and Fes, can it be pulled up?
+		public abstract DbValue[] GetOutputParameters();
 
 		public abstract BlobBase CreateBlob();
 		public abstract BlobBase CreateBlob(long handle);

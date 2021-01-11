@@ -29,6 +29,7 @@ using FirebirdSql.Data.Schema;
 
 namespace FirebirdSql.Data.FirebirdClient
 {
+#warning All the DisposeAsync wrap into Impl as rest of the code
 	internal class FbConnectionInternal
 	{
 		#region Fields
@@ -361,7 +362,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			_preparedCommands.Remove(command);
 		}
 
-		public void ReleasePreparedCommands()
+		public async Task ReleasePreparedCommands(AsyncWrappingCommonArgs async)
 		{
 			// copy the data because the collection will be modified via RemovePreparedCommand from Release
 			var data = _preparedCommands.ToList();
@@ -369,7 +370,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			{
 				try
 				{
-					item.Release();
+					await item.Release(async).ConfigureAwait(false);
 				}
 				catch (IOException)
 				{

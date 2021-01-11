@@ -21,9 +21,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
-using System.Globalization;
 using System.Linq;
-
+using System.Threading;
+using System.Threading.Tasks;
 using FirebirdSql.Data.Common;
 
 namespace FirebirdSql.Data.FirebirdClient
@@ -71,13 +71,9 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		internal FbDataReader()
 			: base()
-		{
-		}
+		{ }
 
-		internal FbDataReader(
-			FbCommand command,
-			FbConnection connection,
-			CommandBehavior commandBehavior)
+		internal FbDataReader(FbCommand command, FbConnection connection, CommandBehavior commandBehavior)
 		{
 			_position = StartPosition;
 			_command = command;
@@ -145,6 +141,10 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			Dispose();
 		}
+		public override async Task CloseAsync()
+		{
+			await DisposeAsync().ConfigureAwait(false);
+		}
 
 		protected override void Dispose(bool disposing)
 		{
@@ -161,7 +161,7 @@ namespace FirebirdSql.Data.FirebirdClient
 						}
 						if (_command.HasImplicitTransaction)
 						{
-							_command.CommitImplicitTransaction();
+							_command.CommitImplicitTransaction(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
 						}
 						_command.ActiveReader = null;
 					}
@@ -178,8 +178,39 @@ namespace FirebirdSql.Data.FirebirdClient
 				}
 			}
 		}
+		public override async ValueTask DisposeAsync()
+		{
+			if (!IsClosed)
+			{
+				_isClosed = true;
+				if (_command != null && !_command.IsDisposed)
+				{
+					if (_command.CommandType == CommandType.StoredProcedure)
+					{
+						_command.SetOutputParameters();
+					}
+					if (_command.HasImplicitTransaction)
+					{
+						await _command.CommitImplicitTransaction(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+					}
+					_command.ActiveReader = null;
+				}
+				if (_connection != null && IsCommandBehavior(CommandBehavior.CloseConnection))
+				{
+					await _connection.CloseAsync().ConfigureAwait(false);
+				}
+				_position = StartPosition;
+				_command = null;
+				_connection = null;
+				_row = null;
+				_schemaTable = null;
+				_fields = null;
+			}
+		}
 
-		public override bool Read()
+		public override bool Read() => ReadImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override Task<bool> ReadAsync(CancellationToken cancellationToken) => ReadImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+		private async Task<bool> ReadImpl(AsyncWrappingCommonArgs async)
 		{
 			CheckState();
 
@@ -195,7 +226,7 @@ namespace FirebirdSql.Data.FirebirdClient
 				}
 				else
 				{
-					_row = _command.Fetch();
+					_row = await _command.Fetch(async).ConfigureAwait(false);
 
 					if (_row != null)
 					{
@@ -212,7 +243,9 @@ namespace FirebirdSql.Data.FirebirdClient
 			return retValue;
 		}
 
-		public override DataTable GetSchemaTable()
+		public override DataTable GetSchemaTable() => GetSchemaTableImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override Task<DataTable> GetSchemaTableAsync(CancellationToken cancellationToken = default) => GetSchemaTableImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+		private async Task<DataTable> GetSchemaTableImpl(AsyncWrappingCommonArgs async)
 		{
 			CheckState();
 
@@ -235,7 +268,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 			schemaCmd.Parameters.Add("@TABLE_NAME", FbDbType.Char, 31);
 			schemaCmd.Parameters.Add("@COLUMN_NAME", FbDbType.Char, 31);
-			schemaCmd.Prepare();
+			await schemaCmd.PrepareImpl(async).ConfigureAwait(false);
 
 			_schemaTable.BeginLoadData();
 
@@ -251,9 +284,9 @@ namespace FirebirdSql.Data.FirebirdClient
 				schemaCmd.Parameters[0].Value = _fields[i].Relation;
 				schemaCmd.Parameters[1].Value = _fields[i].Name;
 
-				using (var r = schemaCmd.ExecuteReader())
+				using (var r = await schemaCmd.ExecuteReaderImpl(CommandBehavior.Default, async).ConfigureAwait(false))
 				{
-					if (r.Read())
+					if (await r.ReadImpl(async).ConfigureAwait(false))
 					{
 						isReadOnly = (IsReadOnly(r) || IsExpression(r)) ? true : false;
 						isKeyColumn = (r.GetInt32(2) == 1) ? true : false;
@@ -302,8 +335,7 @@ namespace FirebirdSql.Data.FirebirdClient
 					currentTable = _fields[i].Relation;
 				}
 
-				/* Close statement	*/
-				schemaCmd.Close();
+				await schemaCmd.Close(async).ConfigureAwait(false);
 			}
 
 			if (tableCount > 1)
@@ -317,8 +349,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 			_schemaTable.EndLoadData();
 
-			/* Dispose command	*/
-			schemaCmd.Dispose();
+			await async.AsyncSyncCallNoCancellation(schemaCmd.DisposeAsync, schemaCmd.Dispose).ConfigureAwait(false);
 
 			return _schemaTable;
 		}
@@ -605,12 +636,14 @@ namespace FirebirdSql.Data.FirebirdClient
 			return CheckedGetValue(x => _row[x].GetDateTime(), i);
 		}
 
-		public override bool IsDBNull(int i)
+		public override bool IsDBNull(int i) => IsDBNullImpl(i, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override Task<bool> IsDBNullAsync(int i, CancellationToken cancellationToken) => IsDBNullImpl(i, new AsyncWrappingCommonArgs(true, cancellationToken));
+		private Task<bool> IsDBNullImpl(int i, AsyncWrappingCommonArgs async)
 		{
 			CheckPosition();
 			CheckIndex(i);
 
-			return _row[i].IsDBNull();
+			return Task.FromResult(_row[i].IsDBNull());
 		}
 
 		public override IEnumerator GetEnumerator()
@@ -618,9 +651,11 @@ namespace FirebirdSql.Data.FirebirdClient
 			return new DbEnumerator(this, IsCommandBehavior(CommandBehavior.CloseConnection));
 		}
 
-		public override bool NextResult()
+		public override bool NextResult() => NextResultImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override Task<bool> NextResultAsync(CancellationToken cancellationToken) => NextResultImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+		private Task<bool> NextResultImpl(AsyncWrappingCommonArgs async)
 		{
-			return false;
+			return Task.FromResult(false);
 		}
 
 		#endregion

@@ -489,7 +489,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 					_innerConnection.DisposeTransaction();
 
-					_innerConnection.ReleasePreparedCommands();
+					await _innerConnection.ReleasePreparedCommands(async).ConfigureAwait(false);
 
 					if (_options.Pooling)
 					{

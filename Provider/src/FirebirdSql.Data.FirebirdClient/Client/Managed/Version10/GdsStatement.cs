@@ -269,7 +269,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			if (StatementType == DbStatementType.StoredProcedure && !_allRowsFetched)
 			{
 				_allRowsFetched = true;
-				return _outputParams.Count > 0 ? _outputParams.Dequeue() : null;
+				return GetOutputParameters();
 			}
 			else if (StatementType == DbStatementType.Insert && _allRowsFetched)
 			{
@@ -342,6 +342,15 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 				_rows.Clear();
 				return null;
 			}
+		}
+
+		public override DbValue[] GetOutputParameters()
+		{
+			if (_outputParams.Count > 0)
+			{
+				return _outputParams.Dequeue();
+			}
+			return null;
 		}
 
 		public override Task Describe(AsyncWrappingCommonArgs async)

@@ -143,7 +143,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		public override void Commit() => CommitImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
 		public override Task CommitAsync(CancellationToken cancellationToken = default) => CommitImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
-		private async Task CommitImpl(AsyncWrappingCommonArgs async)
+		internal async Task CommitImpl(AsyncWrappingCommonArgs async)
 		{
 			EnsureCompleted();
 			try
@@ -159,7 +159,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		public override void Rollback() => RollbackImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
 		public override Task RollbackAsync(CancellationToken cancellationToken = default) => RollbackImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
-		private async Task RollbackImpl(AsyncWrappingCommonArgs async)
+		internal async Task RollbackImpl(AsyncWrappingCommonArgs async)
 		{
 			EnsureCompleted();
 			try
