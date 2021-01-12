@@ -68,35 +68,35 @@ namespace FirebirdSql.Data.Common
 
 		public ValueTask<TResult> AsyncSyncCall<TResult>(Func<CancellationToken, ValueTask<TResult>> asyncCall, Func<TResult> syncCall)
 		{
-			return IsAsync ? asyncCall(CancellationToken) : new ValueTask<TResult>(syncCall());
+			return IsAsync ? asyncCall(CancellationToken) : ValueTask.FromResult(syncCall());
 		}
 		public ValueTask<TResult> AsyncSyncCallNoCancellation<TResult>(Func<ValueTask<TResult>> asyncCall, Func<TResult> syncCall)
 		{
-			return IsAsync ? asyncCall() : new ValueTask<TResult>(syncCall());
+			return IsAsync ? asyncCall() : ValueTask.FromResult(syncCall());
 		}
 		public ValueTask<TResult> AsyncSyncCall<T1, TResult>(Func<T1, CancellationToken, ValueTask<TResult>> asyncCall, Func<T1, TResult> syncCall, T1 arg1)
 		{
-			return IsAsync ? asyncCall(arg1, CancellationToken) : new ValueTask<TResult>(syncCall(arg1));
+			return IsAsync ? asyncCall(arg1, CancellationToken) : ValueTask.FromResult(syncCall(arg1));
 		}
 		public ValueTask<TResult> AsyncSyncCallNoCancellation<T1, TResult>(Func<T1, ValueTask<TResult>> asyncCall, Func<T1, TResult> syncCall, T1 arg1)
 		{
-			return IsAsync ? asyncCall(arg1) : new ValueTask<TResult>(syncCall(arg1));
+			return IsAsync ? asyncCall(arg1) : ValueTask.FromResult(syncCall(arg1));
 		}
 		public ValueTask<TResult> AsyncSyncCall<T1, T2, TResult>(Func<T1, T2, CancellationToken, ValueTask<TResult>> asyncCall, Func<T1, T2, TResult> syncCall, T1 arg1, T2 arg2)
 		{
-			return IsAsync ? asyncCall(arg1, arg2, CancellationToken) : new ValueTask<TResult>(syncCall(arg1, arg2));
+			return IsAsync ? asyncCall(arg1, arg2, CancellationToken) : ValueTask.FromResult(syncCall(arg1, arg2));
 		}
 		public ValueTask<TResult> AsyncSyncCallNoCancellation<T1, T2, TResult>(Func<T1, T2, ValueTask<TResult>> asyncCall, Func<T1, T2, TResult> syncCall, T1 arg1, T2 arg2)
 		{
-			return IsAsync ? asyncCall(arg1, arg2) : new ValueTask<TResult>(syncCall(arg1, arg2));
+			return IsAsync ? asyncCall(arg1, arg2) : ValueTask.FromResult(syncCall(arg1, arg2));
 		}
 		public ValueTask<TResult> AsyncSyncCall<T1, T2, T3, TResult>(Func<T1, T2, T3, CancellationToken, ValueTask<TResult>> asyncCall, Func<T1, T2, T3, TResult> syncCall, T1 arg1, T2 arg2, T3 arg3)
 		{
-			return IsAsync ? asyncCall(arg1, arg2, arg3, CancellationToken) : new ValueTask<TResult>(syncCall(arg1, arg2, arg3));
+			return IsAsync ? asyncCall(arg1, arg2, arg3, CancellationToken) : ValueTask.FromResult(syncCall(arg1, arg2, arg3));
 		}
 		public ValueTask<TResult> AsyncSyncCallNoCancellation<T1, T2, T3, TResult>(Func<T1, T2, T3, ValueTask<TResult>> asyncCall, Func<T1, T2, T3, TResult> syncCall, T1 arg1, T2 arg2, T3 arg3)
 		{
-			return IsAsync ? asyncCall(arg1, arg2, arg3) : new ValueTask<TResult>(syncCall(arg1, arg2, arg3));
+			return IsAsync ? asyncCall(arg1, arg2, arg3) : ValueTask.FromResult(syncCall(arg1, arg2, arg3));
 		}
 
 		public Task AsyncSyncCall(Func<CancellationToken, Task> asyncCall, Action syncCall)

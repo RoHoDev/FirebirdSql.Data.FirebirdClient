@@ -282,7 +282,11 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		private async Task CompleteTransaction(AsyncWrappingCommonArgs async)
 		{
-			_connection?.InnerConnection?.TransactionCompleted();
+			var innerConnection = _connection?.InnerConnection;
+			if (innerConnection != null)
+			{
+				await innerConnection.TransactionCompleted(async).ConfigureAwait(false);
+			}
 			_connection = null;
 			await _transaction.Dispose2(async).ConfigureAwait(false);
 			_transaction = null;

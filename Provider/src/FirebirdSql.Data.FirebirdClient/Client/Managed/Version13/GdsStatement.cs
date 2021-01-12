@@ -54,7 +54,7 @@ namespace FirebirdSql.Data.Client.Managed.Version13
 					for (var i = 0; i < _parameters.Count; i++)
 					{
 						var field = _parameters[i];
-						bits.Set(i, field.DbValue.IsDBNull());
+						bits.Set(i, await field.DbValue.IsDBNull(async).ConfigureAwait(false));
 					}
 					var buffer = new byte[(int)Math.Ceiling(_parameters.Count / 8d)];
 					for (var i = 0; i < buffer.Length * 8; i++)
@@ -68,7 +68,7 @@ namespace FirebirdSql.Data.Client.Managed.Version13
 					for (var i = 0; i < _parameters.Count; i++)
 					{
 						var field = _parameters[i];
-						if (field.DbValue.IsDBNull())
+						if (await field.DbValue.IsDBNull(async).ConfigureAwait(false))
 						{
 							continue;
 						}

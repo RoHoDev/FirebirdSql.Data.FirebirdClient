@@ -112,8 +112,8 @@ namespace FirebirdSql.Data.Common
 				var i = 0;
 				while ((values = await lookup.Fetch(async).ConfigureAwait(false)) != null)
 				{
-					_descriptor.Bounds[i].LowerBound = values[0].GetInt32();
-					_descriptor.Bounds[i].UpperBound = values[1].GetInt32();
+					_descriptor.Bounds[i].LowerBound = await values[0].GetInt32(async).ConfigureAwait(false);
+					_descriptor.Bounds[i].UpperBound = await values[1].GetInt32(async).ConfigureAwait(false);
 
 					i++;
 				}
@@ -138,13 +138,13 @@ namespace FirebirdSql.Data.Common
 				{
 					_descriptor.RelationName = _tableName;
 					_descriptor.FieldName = _fieldName;
-					_descriptor.DataType = values[0].GetByte();
-					_descriptor.Scale = values[1].GetInt16();
-					_descriptor.Length = values[2].GetInt16();
-					_descriptor.Dimensions = values[3].GetInt16();
+					_descriptor.DataType = await values[0].GetByte(async).ConfigureAwait(false);
+					_descriptor.Scale = await values[1].GetInt16(async).ConfigureAwait(false);
+					_descriptor.Length = await values[2].GetInt16(async).ConfigureAwait(false);
+					_descriptor.Dimensions = await values[3].GetInt16(async).ConfigureAwait(false);
 					_descriptor.Flags = 0;
 
-					_rdbFieldName = values[4].GetString().Trim();
+					_rdbFieldName = (await values[4].GetString(async).ConfigureAwait(false)).Trim();
 				}
 				else
 				{

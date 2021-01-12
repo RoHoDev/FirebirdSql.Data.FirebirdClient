@@ -241,7 +241,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 			catch (IscException ex)
 			{
-				DisposeTransaction();
+				await DisposeTransaction(async).ConfigureAwait(false);
 				throw new FbException(ex.Message, ex);
 			}
 
@@ -264,29 +264,29 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 			catch (IscException ex)
 			{
-				DisposeTransaction();
+				await DisposeTransaction(async).ConfigureAwait(false);
 				throw new FbException(ex.Message, ex);
 			}
 
 			return _activeTransaction;
 		}
 
-		public void DisposeTransaction()
+		public async Task DisposeTransaction(AsyncWrappingCommonArgs async)
 		{
 			if (_activeTransaction != null && !IsEnlisted)
 			{
-				_activeTransaction.Dispose();
+				await async.AsyncSyncCallNoCancellation(_activeTransaction.DisposeAsync, _activeTransaction.Dispose).ConfigureAwait(false);
 				_activeTransaction = null;
 			}
 		}
 
-		public void TransactionCompleted()
+		public async Task TransactionCompleted(AsyncWrappingCommonArgs async)
 		{
 			foreach (var command in _preparedCommands)
 			{
 				if (command.Transaction != null)
 				{
-					command.DisposeReader();
+					await command.DisposeReader(async).ConfigureAwait(false);
 					command.Transaction = null;
 				}
 			}

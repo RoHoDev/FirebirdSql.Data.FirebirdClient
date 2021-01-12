@@ -458,7 +458,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 				if (_statement.StatementType == DbStatementType.StoredProcedure)
 				{
-					SetOutputParameters();
+					await SetOutputParameters(async).ConfigureAwait(false);
 				}
 
 				await CommitImplicitTransaction(async).ConfigureAwait(false);
@@ -531,7 +531,7 @@ namespace FirebirdSql.Data.FirebirdClient
 				if (_statement.StatementType == DbStatementType.StoredProcedure)
 				{
 					values = _statement.GetOutputParameters();
-					SetOutputParameters(values);
+					await SetOutputParameters(values, async).ConfigureAwait(false);
 				}
 				else
 				{
@@ -541,7 +541,7 @@ namespace FirebirdSql.Data.FirebirdClient
 				// Get the return value
 				if (values != null && values.Length > 0)
 				{
-					val = values[0].Value;
+					val = await values[0].GetValue(async).ConfigureAwait(false);
 				}
 
 				await CommitImplicitTransaction(async).ConfigureAwait(false);
@@ -640,12 +640,12 @@ namespace FirebirdSql.Data.FirebirdClient
 			return null;
 		}
 
-		internal void SetOutputParameters()
+		internal Task SetOutputParameters(AsyncWrappingCommonArgs async)
 		{
-			SetOutputParameters(null);
+			return SetOutputParameters(null, async);
 		}
 
-		internal void SetOutputParameters(DbValue[] outputParameterValues)
+		internal async Task SetOutputParameters(DbValue[] outputParameterValues, AsyncWrappingCommonArgs async)
 		{
 			if (Parameters.Count > 0 && _statement != null)
 			{
@@ -667,7 +667,7 @@ namespace FirebirdSql.Data.FirebirdClient
 								parameter.Direction == ParameterDirection.InputOutput ||
 								parameter.Direction == ParameterDirection.ReturnValue)
 							{
-								parameter.Value = values[i].Value;
+								parameter.Value = await values[i].GetValue(async).ConfigureAwait(false);
 								i++;
 							}
 						}
@@ -976,7 +976,7 @@ namespace FirebirdSql.Data.FirebirdClient
 					if (commandParameter.InternalValue == DBNull.Value || commandParameter.InternalValue == null)
 					{
 						statementParameter.NullFlag = -1;
-						statementParameter.Value = DBNull.Value;
+						statementParameter.DbValue.SetValue(DBNull.Value);
 
 						if (!statementParameter.AllowDBNull())
 						{
@@ -993,7 +993,7 @@ namespace FirebirdSql.Data.FirebirdClient
 								{
 									var blob = _statement.CreateBlob();
 									await blob.Write((byte[])commandParameter.InternalValue, async).ConfigureAwait(false);
-									statementParameter.Value = blob.Id;
+									statementParameter.DbValue.SetValue(blob.Id);
 								}
 								break;
 
@@ -1008,7 +1008,7 @@ namespace FirebirdSql.Data.FirebirdClient
 									{
 										await blob.Write((string)commandParameter.InternalValue, async).ConfigureAwait(false);
 									}
-									statementParameter.Value = blob.Id;
+									statementParameter.DbValue.SetValue(blob.Id);
 								}
 								break;
 
@@ -1027,7 +1027,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 									statementParameter.ArrayHandle.Handle = 0;
 									await statementParameter.ArrayHandle.Write((Array)commandParameter.InternalValue, async).ConfigureAwait(false);
-									statementParameter.Value = statementParameter.ArrayHandle.Handle;
+									statementParameter.DbValue.SetValue(statementParameter.ArrayHandle.Handle);
 								}
 								break;
 
@@ -1036,11 +1036,11 @@ namespace FirebirdSql.Data.FirebirdClient
 								{
 									throw new InvalidOperationException("Incorrect Guid value.");
 								}
-								statementParameter.Value = commandParameter.InternalValue;
+								statementParameter.DbValue.SetValue(commandParameter.InternalValue);
 								break;
 
 							default:
-								statementParameter.Value = commandParameter.InternalValue;
+								statementParameter.DbValue.SetValue(commandParameter.InternalValue);
 								break;
 						}
 					}

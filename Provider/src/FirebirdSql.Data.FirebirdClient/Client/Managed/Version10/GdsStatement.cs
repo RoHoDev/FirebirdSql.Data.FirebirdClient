@@ -716,18 +716,18 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 		{
 			if (field.DbDataType != DbDataType.Null)
 			{
-				field.FixNull();
+				await field.FixNull(async).ConfigureAwait(false);
 
 				switch (field.DbDataType)
 				{
 					case DbDataType.Char:
 						if (field.Charset.IsOctetsCharset)
 						{
-							await xdr.WriteOpaque(field.DbValue.GetBinary(), field.Length, async).ConfigureAwait(false);
+							await xdr.WriteOpaque(await field.DbValue.GetBinary(async).ConfigureAwait(false), field.Length, async).ConfigureAwait(false);
 						}
 						else if (field.Charset.IsNoneCharset)
 						{
-							var bvalue = field.Charset.GetBytes(field.DbValue.GetString());
+							var bvalue = field.Charset.GetBytes(await field.DbValue.GetString(async).ConfigureAwait(false));
 							if (bvalue.Length > field.Length)
 							{
 								throw IscException.ForErrorCodes(new[] { IscCodes.isc_arith_except, IscCodes.isc_string_truncation });
@@ -736,7 +736,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 						}
 						else
 						{
-							var svalue = field.DbValue.GetString();
+							var svalue = await field.DbValue.GetString(async).ConfigureAwait(false);
 							if ((field.Length % field.Charset.BytesPerCharacter) == 0 && svalue.Length > field.CharCount)
 							{
 								throw IscException.ForErrorCodes(new[] { IscCodes.isc_arith_except, IscCodes.isc_string_truncation });
@@ -748,11 +748,11 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 					case DbDataType.VarChar:
 						if (field.Charset.IsOctetsCharset)
 						{
-							await xdr.WriteBuffer(field.DbValue.GetBinary(), async).ConfigureAwait(false);
+							await xdr.WriteBuffer(await field.DbValue.GetBinary(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						}
 						else if (field.Charset.IsNoneCharset)
 						{
-							var bvalue = field.Charset.GetBytes(field.DbValue.GetString());
+							var bvalue = field.Charset.GetBytes(await field.DbValue.GetString(async).ConfigureAwait(false));
 							if (bvalue.Length > field.Length)
 							{
 								throw IscException.ForErrorCodes(new[] { IscCodes.isc_arith_except, IscCodes.isc_string_truncation });
@@ -761,7 +761,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 						}
 						else
 						{
-							var svalue = field.DbValue.GetString();
+							var svalue = await field.DbValue.GetString(async).ConfigureAwait(false);
 							if ((field.Length % field.Charset.BytesPerCharacter) == 0 && svalue.Length > field.CharCount)
 							{
 								throw IscException.ForErrorCodes(new[] { IscCodes.isc_arith_except, IscCodes.isc_string_truncation });
@@ -771,88 +771,88 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 						break;
 
 					case DbDataType.SmallInt:
-						await xdr.Write(field.DbValue.GetInt16(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetInt16(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Integer:
-						await xdr.Write(field.DbValue.GetInt32(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetInt32(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.BigInt:
 					case DbDataType.Array:
 					case DbDataType.Binary:
 					case DbDataType.Text:
-						await xdr.Write(field.DbValue.GetInt64(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetInt64(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Decimal:
 					case DbDataType.Numeric:
-						await xdr.Write(field.DbValue.GetDecimal(), field.DataType, field.NumericScale, async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetDecimal(async).ConfigureAwait(false), field.DataType, field.NumericScale, async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Float:
-						await xdr.Write(field.DbValue.GetFloat(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetFloat(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Guid:
-						await xdr.Write(field.DbValue.GetGuid(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetGuid(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Double:
-						await xdr.Write(field.DbValue.GetDouble(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetDouble(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Date:
-						await xdr.Write(field.DbValue.GetDate(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetDate(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Time:
-						await xdr.Write(field.DbValue.GetTime(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetTime(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.TimeStamp:
-						await xdr.Write(field.DbValue.GetDate(), async).ConfigureAwait(false);
-						await xdr.Write(field.DbValue.GetTime(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetDate(async).ConfigureAwait(false), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetTime(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Boolean:
-						await xdr.Write(field.DbValue.GetBoolean(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetBoolean(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.TimeStampTZ:
-						await xdr.Write(field.DbValue.GetDate(), async).ConfigureAwait(false);
-						await xdr.Write(field.DbValue.GetTime(), async).ConfigureAwait(false);
-						await xdr.Write(field.DbValue.GetTimeZoneId(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetDate(async).ConfigureAwait(false), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetTime(async).ConfigureAwait(false), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetTimeZoneId(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.TimeStampTZEx:
-						await xdr.Write(field.DbValue.GetDate(), async).ConfigureAwait(false);
-						await xdr.Write(field.DbValue.GetTime(), async).ConfigureAwait(false);
-						await xdr.Write(field.DbValue.GetTimeZoneId(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetDate(async).ConfigureAwait(false), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetTime(async).ConfigureAwait(false), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetTimeZoneId(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						await xdr.Write((short)0, async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.TimeTZ:
-						await xdr.Write(field.DbValue.GetTime(), async).ConfigureAwait(false);
-						await xdr.Write(field.DbValue.GetTimeZoneId(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetTime(async).ConfigureAwait(false), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetTimeZoneId(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.TimeTZEx:
-						await xdr.Write(field.DbValue.GetTime(), async).ConfigureAwait(false);
-						await xdr.Write(field.DbValue.GetTimeZoneId(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetTime(async).ConfigureAwait(false), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetTimeZoneId(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						await xdr.Write((short)0, async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Dec16:
-						await xdr.Write(field.DbValue.GetDec16(), 16, async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetDec16(async).ConfigureAwait(false), 16, async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Dec34:
-						await xdr.Write(field.DbValue.GetDec34(), 34, async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetDec34(async).ConfigureAwait(false), 34, async).ConfigureAwait(false);
 						break;
 
 					case DbDataType.Int128:
-						await xdr.Write(field.DbValue.GetInt128(), async).ConfigureAwait(false);
+						await xdr.Write(await field.DbValue.GetInt128(async).ConfigureAwait(false), async).ConfigureAwait(false);
 						break;
 
 					default:

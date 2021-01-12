@@ -214,7 +214,7 @@ namespace FirebirdSql.Data.Client.Native
 
 			_fields = new Descriptor(1);
 
-			var sqlda = XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _fields);
+			var sqlda = await XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _fields, async).ConfigureAwait(false);
 			var trHandle = _transaction.HandlePtr;
 
 			var buffer = _db.Charset.GetBytes(commandText);
@@ -266,12 +266,12 @@ namespace FirebirdSql.Data.Client.Native
 
 			if (_parameters != null)
 			{
-				inSqlda = XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _parameters);
+				inSqlda = await XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _parameters, async).ConfigureAwait(false);
 			}
 			if (StatementType == DbStatementType.StoredProcedure)
 			{
 				Fields.ResetValues();
-				outSqlda = XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _fields);
+				outSqlda = await XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _fields, async).ConfigureAwait(false);
 			}
 
 			var trHandle = _transaction.HandlePtr;
@@ -292,7 +292,9 @@ namespace FirebirdSql.Data.Client.Native
 
 				for (var i = 0; i < values.Length; i++)
 				{
-					values[i] = new DbValue(this, descriptor[i]);
+					var d = descriptor[i];
+					var value = await d.DbValue.GetValue(async).ConfigureAwait(false);
+					values[i] = new DbValue(this, d, value);
 				}
 
 				_outputParams.Enqueue(values);
@@ -315,22 +317,22 @@ namespace FirebirdSql.Data.Client.Native
 			State = StatementState.Executed;
 		}
 
-		public override Task<DbValue[]> Fetch(AsyncWrappingCommonArgs async)
+		public override async Task<DbValue[]> Fetch(AsyncWrappingCommonArgs async)
 		{
 			EnsureNotDeallocated();
 
 			if (StatementType == DbStatementType.StoredProcedure && !_allRowsFetched)
 			{
 				_allRowsFetched = true;
-				return Task.FromResult(GetOutputParameters());
+				return GetOutputParameters();
 			}
 			else if (StatementType == DbStatementType.Insert && _allRowsFetched)
 			{
-				return Task.FromResult<DbValue[]>(null);
+				return null;
 			}
 			else if (StatementType != DbStatementType.Select && StatementType != DbStatementType.SelectForUpdate)
 			{
-				return Task.FromResult<DbValue[]>(null);
+				return null;
 			}
 
 			DbValue[] row = null;
@@ -340,7 +342,7 @@ namespace FirebirdSql.Data.Client.Native
 
 				if (_fetchSqlDa == IntPtr.Zero)
 				{
-					_fetchSqlDa = XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _fields);
+					_fetchSqlDa = await XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _fields, async).ConfigureAwait(false);
 				}
 
 				ClearStatusVector();
@@ -375,11 +377,13 @@ namespace FirebirdSql.Data.Client.Native
 					row = new DbValue[_fields.ActualCount];
 					for (var i = 0; i < row.Length; i++)
 					{
-						row[i] = new DbValue(this, _fields[i]);
+						var d = _fields[i];
+						var value = await d.DbValue.GetValue(async).ConfigureAwait(false);
+						row[i] = new DbValue(this, d, value);
 					}
 				}
 			}
-			return Task.FromResult(row);
+			return row;
 		}
 
 		public override DbValue[] GetOutputParameters()
@@ -391,13 +395,13 @@ namespace FirebirdSql.Data.Client.Native
 			return null;
 		}
 
-		public override Task Describe(AsyncWrappingCommonArgs async)
+		public override async Task Describe(AsyncWrappingCommonArgs async)
 		{
 			ClearStatusVector();
 
 			_fields = new Descriptor(_fields.ActualCount);
 
-			var sqlda = XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _fields);
+			var sqlda = await XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _fields, async).ConfigureAwait(false);
 
 
 			_db.FbClient.isc_dsql_describe(
@@ -413,17 +417,15 @@ namespace FirebirdSql.Data.Client.Native
 			_db.ProcessStatusVector(_statusVector);
 
 			_fields = descriptor;
-
-			return Task.CompletedTask;
 		}
 
-		public override Task DescribeParameters(AsyncWrappingCommonArgs async)
+		public override async Task DescribeParameters(AsyncWrappingCommonArgs async)
 		{
 			ClearStatusVector();
 
 			_parameters = new Descriptor(1);
 
-			var sqlda = XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _parameters);
+			var sqlda = await XsqldaMarshaler.MarshalManagedToNative(_db.Charset, _parameters, async).ConfigureAwait(false);
 
 
 			_db.FbClient.isc_dsql_describe_bind(
@@ -443,7 +445,7 @@ namespace FirebirdSql.Data.Client.Native
 
 				XsqldaMarshaler.CleanUpNativeData(ref sqlda);
 
-				sqlda = XsqldaMarshaler.MarshalManagedToNative(_db.Charset, descriptor);
+				sqlda = await XsqldaMarshaler.MarshalManagedToNative(_db.Charset, descriptor, async).ConfigureAwait(false);
 
 				_db.FbClient.isc_dsql_describe_bind(
 					_statusVector,
@@ -471,8 +473,6 @@ namespace FirebirdSql.Data.Client.Native
 			}
 
 			_parameters = descriptor;
-
-			return Task.CompletedTask;
 		}
 
 		#endregion

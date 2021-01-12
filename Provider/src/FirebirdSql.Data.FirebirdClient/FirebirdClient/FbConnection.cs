@@ -438,7 +438,7 @@ namespace FirebirdSql.Data.FirebirdClient
 					catch
 					{
 						// if enlistment fails clean up innerConnection
-						_innerConnection.DisposeTransaction();
+						await _innerConnection.DisposeTransaction(async).ConfigureAwait(false);
 
 						if (_options.Pooling)
 						{
@@ -487,7 +487,7 @@ namespace FirebirdSql.Data.FirebirdClient
 						_innerConnection.Database.WarningMessage = null;
 					}
 
-					_innerConnection.DisposeTransaction();
+					await _innerConnection.DisposeTransaction(async).ConfigureAwait(false);
 
 					await _innerConnection.ReleasePreparedCommands(async).ConfigureAwait(false);
 
