@@ -414,16 +414,21 @@ namespace FirebirdSql.Data.FirebirdClient
 			{
 				OnStateChange(_state, ConnectionState.Connecting);
 
+				var createdNew = default(bool);
 				if (_options.Pooling)
 				{
-					_innerConnection = await FbConnectionPoolManager.Instance.Get(_options, this, async).ConfigureAwait(false);
+					_innerConnection = FbConnectionPoolManager.Instance.Get(_options, out createdNew);
 				}
 				else
 				{
 					_innerConnection = new FbConnectionInternal(_options);
-					_innerConnection.SetOwningConnection(this);
+					createdNew = true;
+				}
+				if (createdNew)
+				{
 					await _innerConnection.Connect(async).ConfigureAwait(false);
 				}
+				_innerConnection.SetOwningConnection(this);
 
 				if (_options.Enlist)
 				{
