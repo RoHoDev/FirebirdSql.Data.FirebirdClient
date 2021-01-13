@@ -95,6 +95,7 @@ namespace FirebirdSql.Data.Client.Managed
 				socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 				socket.TrySetKeepAlive(KeepAliveTime, KeepAliveInterval);
 				socket.TryEnableLoopbackFastPath();
+#warning on NET5_0 use the extension method
 				await async.AsyncSyncCallNoCancellation(e => Task.Factory.FromAsync(socket.BeginConnect, socket.EndConnect, e, null), socket.Connect, endPoint).ConfigureAwait(false);
 
 				_firebirdNetworkStream = new FirebirdNetworkStream(new NetworkStream(socket, true));

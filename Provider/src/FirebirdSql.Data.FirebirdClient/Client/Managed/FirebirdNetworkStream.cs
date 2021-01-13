@@ -26,6 +26,7 @@ namespace FirebirdSql.Data.Client.Managed
 {
 	class FirebirdNetworkStream : Stream, ITracksIOFailure
 	{
+#warning ASYNC
 		public const string CompressionName = "zlib";
 		public const string EncryptionName = "Arc4";
 

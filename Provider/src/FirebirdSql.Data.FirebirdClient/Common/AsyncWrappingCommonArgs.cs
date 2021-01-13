@@ -66,6 +66,7 @@ namespace FirebirdSql.Data.Common
 			return IsAsync ? asyncCall(arg1, arg2, arg3) : Task.FromResult(syncCall(arg1, arg2, arg3));
 		}
 
+#if !(NET48 || NETSTANDARD2_0)
 		public ValueTask<TResult> AsyncSyncCall<TResult>(Func<CancellationToken, ValueTask<TResult>> asyncCall, Func<TResult> syncCall)
 		{
 			return IsAsync ? asyncCall(CancellationToken) : ValueTask.FromResult(syncCall());
@@ -98,6 +99,7 @@ namespace FirebirdSql.Data.Common
 		{
 			return IsAsync ? asyncCall(arg1, arg2, arg3) : ValueTask.FromResult(syncCall(arg1, arg2, arg3));
 		}
+#endif
 
 		public Task AsyncSyncCall(Func<CancellationToken, Task> asyncCall, Action syncCall)
 		{
@@ -132,6 +134,7 @@ namespace FirebirdSql.Data.Common
 			return IsAsync ? asyncCall(arg1, arg2, arg3) : SyncTaskCompleted(Task.CompletedTask, syncCall, arg1, arg2, arg3);
 		}
 
+#if !(NET48 || NETSTANDARD2_0)
 		public ValueTask AsyncSyncCall(Func<CancellationToken, ValueTask> asyncCall, Action syncCall)
 		{
 			return IsAsync ? asyncCall(CancellationToken) : SyncTaskCompleted(ValueTask.CompletedTask, syncCall);
@@ -164,6 +167,7 @@ namespace FirebirdSql.Data.Common
 		{
 			return IsAsync ? asyncCall(arg1, arg2, arg3) : SyncTaskCompleted(ValueTask.CompletedTask, syncCall, arg1, arg2, arg3);
 		}
+#endif
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		static TTask SyncTaskCompleted<TTask>(TTask completed, Action sync)

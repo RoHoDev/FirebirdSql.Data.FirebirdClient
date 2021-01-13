@@ -47,12 +47,25 @@ namespace FirebirdSql.Data.Common
 			_value = value ?? DBNull.Value;
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<bool> IsDBNull(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<bool> IsDBNull(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(TypeHelper.IsDBNull(_value));
+			var result = TypeHelper.IsDBNull(_value);
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public async Task<object> GetValue(AsyncWrappingCommonArgs async)
+#else
 		public async ValueTask<object> GetValue(AsyncWrappingCommonArgs async)
+#endif
 		{
 			if (await IsDBNull(async).ConfigureAwait(false))
 			{
@@ -101,7 +114,11 @@ namespace FirebirdSql.Data.Common
 			_value = value;
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public async Task<string> GetString(AsyncWrappingCommonArgs async)
+#else
 		public async ValueTask<string> GetString(AsyncWrappingCommonArgs async)
+#endif
 		{
 			if (Field.DbDataType == DbDataType.Text && _value is long l)
 			{
@@ -115,74 +132,177 @@ namespace FirebirdSql.Data.Common
 			return _value.ToString();
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<char> GetChar(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<char> GetChar(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(Convert.ToChar(_value, CultureInfo.CurrentCulture));
+			var result = Convert.ToChar(_value, CultureInfo.CurrentCulture);
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<bool> GetBoolean(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<bool> GetBoolean(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(Convert.ToBoolean(_value, CultureInfo.InvariantCulture));
+			var result = Convert.ToBoolean(_value, CultureInfo.InvariantCulture);
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<byte> GetByte(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<byte> GetByte(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(Convert.ToByte(_value, CultureInfo.InvariantCulture));
+			var result = Convert.ToByte(_value, CultureInfo.InvariantCulture);
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<short> GetInt16(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<short> GetInt16(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(Convert.ToInt16(_value, CultureInfo.InvariantCulture));
+			var result = Convert.ToInt16(_value, CultureInfo.InvariantCulture);
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<int> GetInt32(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<int> GetInt32(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(Convert.ToInt32(_value, CultureInfo.InvariantCulture));
+			var result = Convert.ToInt32(_value, CultureInfo.InvariantCulture);
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<long> GetInt64(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<long> GetInt64(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(Convert.ToInt64(_value, CultureInfo.InvariantCulture));
+			var result = Convert.ToInt64(_value, CultureInfo.InvariantCulture);
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<decimal> GetDecimal(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<decimal> GetDecimal(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(Convert.ToDecimal(_value, CultureInfo.InvariantCulture));
+			var result = Convert.ToDecimal(_value, CultureInfo.InvariantCulture);
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<float> GetFloat(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<float> GetFloat(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(Convert.ToSingle(_value, CultureInfo.InvariantCulture));
+			var result = Convert.ToSingle(_value, CultureInfo.InvariantCulture);
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<Guid> GetGuid(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<Guid> GetGuid(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(_value switch
+			var result = _value switch
 			{
 				Guid guid => guid,
 				byte[] bytes => TypeDecoder.DecodeGuid(bytes),
 				_ => throw new InvalidOperationException($"Incorrect {nameof(Guid)} value."),
-			});
+			};
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<double> GetDouble(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<double> GetDouble(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(Convert.ToDouble(_value, CultureInfo.InvariantCulture));
+			var result = Convert.ToDouble(_value, CultureInfo.InvariantCulture);
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<DateTime> GetDateTime(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<DateTime> GetDateTime(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult(_value switch
+			var result = _value switch
 			{
 				TimeSpan ts => new DateTime(0 * 10000L + 621355968000000000 + ts.Ticks),
 				DateTimeOffset dto => dto.DateTime,
 				FbZonedDateTime zdt => zdt.DateTime,
 				FbZonedTime zt => new DateTime(0 * 10000L + 621355968000000000 + zt.Time.Ticks),
 				_ => Convert.ToDateTime(_value, CultureInfo.CurrentCulture.DateTimeFormat),
-			});
+			};
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public async Task<Array> GetArray(AsyncWrappingCommonArgs async)
+#else
 		public async ValueTask<Array> GetArray(AsyncWrappingCommonArgs async)
+#endif
 		{
 			if (_value is long l)
 			{
@@ -192,7 +312,11 @@ namespace FirebirdSql.Data.Common
 			return (Array)_value;
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public async Task<byte[]> GetBinary(AsyncWrappingCommonArgs async)
+#else
 		public async ValueTask<byte[]> GetBinary(AsyncWrappingCommonArgs async)
+#endif
 		{
 			if (_value is long l)
 			{
@@ -206,12 +330,20 @@ namespace FirebirdSql.Data.Common
 			return (byte[])_value;
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public async Task<int> GetDate(AsyncWrappingCommonArgs async)
+#else
 		public async ValueTask<int> GetDate(AsyncWrappingCommonArgs async)
+#endif
 		{
 			return TypeEncoder.EncodeDate(await GetDateTime(async).ConfigureAwait(false));
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public async Task<int> GetTime(AsyncWrappingCommonArgs async)
+#else
 		public async ValueTask<int> GetTime(AsyncWrappingCommonArgs async)
+#endif
 		{
 			return _value switch
 			{
@@ -221,39 +353,82 @@ namespace FirebirdSql.Data.Common
 			};
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<ushort> GetTimeZoneId(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<ushort> GetTimeZoneId(AsyncWrappingCommonArgs async)
+#endif
 		{
 			{
 				if (_value is FbZonedDateTime zdt && TimeZoneMapping.TryGetByName(zdt.TimeZone, out var id))
 				{
+#if NET48 || NETSTANDARD2_0
+					return Task.FromResult(id);
+#else
 					return ValueTask.FromResult(id);
+#endif
 				}
 			}
 			{
 				if (_value is FbZonedTime zt && TimeZoneMapping.TryGetByName(zt.TimeZone, out var id))
 				{
+#if NET48 || NETSTANDARD2_0
+					return Task.FromResult(id);
+#else
 					return ValueTask.FromResult(id);
+#endif
 				}
 			}
 			throw new InvalidOperationException($"Incorrect time zone value.");
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<FbDecFloat> GetDec16(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<FbDecFloat> GetDec16(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult((FbDecFloat)_value);
+			var result = (FbDecFloat)_value;
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<FbDecFloat> GetDec34(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<FbDecFloat> GetDec34(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult((FbDecFloat)_value);
+			var result = (FbDecFloat)_value;
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public Task<BigInteger> GetInt128(AsyncWrappingCommonArgs async)
+#else
 		public ValueTask<BigInteger> GetInt128(AsyncWrappingCommonArgs async)
+#endif
 		{
-			return ValueTask.FromResult((BigInteger)_value);
+			var result = (BigInteger)_value;
+#if NET48 || NETSTANDARD2_0
+			return Task.FromResult(result);
+#else
+			return ValueTask.FromResult(result);
+#endif
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public async Task<byte[]> GetBytes(AsyncWrappingCommonArgs async)
+#else
 		public async ValueTask<byte[]> GetBytes(AsyncWrappingCommonArgs async)
+#endif
 		{
 			if (await IsDBNull(async).ConfigureAwait(false))
 			{
@@ -454,7 +629,11 @@ namespace FirebirdSql.Data.Common
 			}
 		}
 
+#if NET48 || NETSTANDARD2_0
+		private async Task<byte[]> GetNumericBytes(AsyncWrappingCommonArgs async)
+#else
 		private async ValueTask<byte[]> GetNumericBytes(AsyncWrappingCommonArgs async)
+#endif
 		{
 			var value = await GetDecimal(async).ConfigureAwait(false);
 			var numeric = TypeEncoder.EncodeDecimal(value, Field.NumericScale, Field.DataType);

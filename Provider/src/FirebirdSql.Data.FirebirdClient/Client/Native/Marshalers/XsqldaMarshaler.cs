@@ -64,7 +64,11 @@ namespace FirebirdSql.Data.Client.Native.Marshalers
 			}
 		}
 
+#if NET48 || NETSTANDARD2_0
+		public static async Task<IntPtr> MarshalManagedToNative(Charset charset, Descriptor descriptor, AsyncWrappingCommonArgs async)
+#else
 		public static async ValueTask<IntPtr> MarshalManagedToNative(Charset charset, Descriptor descriptor, AsyncWrappingCommonArgs async)
+#endif
 		{
 			var xsqlda = new XSQLDA
 			{
