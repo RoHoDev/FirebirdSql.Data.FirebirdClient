@@ -30,6 +30,9 @@ using FirebirdSql.Data.Common;
 namespace FirebirdSql.Data.FirebirdClient
 {
 	public sealed class FbDataReader : DbDataReader
+#if NET48 || NETSTANDARD2_0
+		, IAsyncDisposable
+#endif
 	{
 		#region Constants
 
@@ -814,11 +817,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-#if NET48 || NETSTANDARD2_0
-		private static T CheckedGetValue<T>(Func<AsyncWrappingCommonArgs, Task<T>> getter)
-#else
 		private static T CheckedGetValue<T>(Func<AsyncWrappingCommonArgs, ValueTask<T>> getter)
-#endif
 		{
 			try
 			{

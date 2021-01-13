@@ -29,6 +29,9 @@ using FirebirdSql.Data.Logging;
 namespace FirebirdSql.Data.FirebirdClient
 {
 	public sealed class FbCommand : DbCommand, ICloneable
+#if NET48 || NETSTANDARD2_0
+		, IAsyncDisposable
+#endif
 	{
 		static readonly IFbLogger Log = FbLogManager.CreateLogger(nameof(FbCommand));
 

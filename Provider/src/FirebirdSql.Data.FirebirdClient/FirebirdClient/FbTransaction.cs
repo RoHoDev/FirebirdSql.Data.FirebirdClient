@@ -25,6 +25,9 @@ using FirebirdSql.Data.Common;
 namespace FirebirdSql.Data.FirebirdClient
 {
 	public sealed class FbTransaction : DbTransaction
+#if NET48 || NETSTANDARD2_0
+		, IAsyncDisposable
+#endif
 	{
 		#region Fields
 

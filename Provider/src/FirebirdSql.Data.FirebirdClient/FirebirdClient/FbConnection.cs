@@ -27,6 +27,9 @@ namespace FirebirdSql.Data.FirebirdClient
 {
 	[DefaultEvent("InfoMessage")]
 	public sealed class FbConnection : DbConnection, ICloneable
+#if NET48 || NETSTANDARD2_0
+		, IAsyncDisposable
+#endif
 	{
 		#region Static Pool Handling Methods
 
@@ -341,7 +344,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		#region Database Schema Methods
 
 		public override DataTable GetSchema() => GetSchemaImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-#if NET48 || NETSTANDARD2_0
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
 		public Task<DataTable> GetSchemaAsync(CancellationToken cancellationToken = default)
 #else
 		public override Task<DataTable> GetSchemaAsync(CancellationToken cancellationToken = default)
@@ -353,7 +356,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		public override DataTable GetSchema(string collectionName) => GetSchemaImpl(collectionName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-#if NET48 || NETSTANDARD2_0
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
 		public Task<DataTable> GetSchemaAsync(string collectionName, CancellationToken cancellationToken = default)
 #else
 		public override Task<DataTable> GetSchemaAsync(string collectionName, CancellationToken cancellationToken = default)
@@ -364,7 +367,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			return GetSchemaImpl(collectionName, null, async);
 		}
 		public override DataTable GetSchema(string collectionName, string[] restrictions) => GetSchemaImpl(collectionName, restrictions, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-#if NET48 || NETSTANDARD2_0
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
 		public Task<DataTable> GetSchemaAsync(string collectionName, string[] restrictions, CancellationToken cancellationToken = default)
 #else
 		public override Task<DataTable> GetSchemaAsync(string collectionName, string[] restrictions, CancellationToken cancellationToken = default)
