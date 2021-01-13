@@ -425,7 +425,12 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		public override void Prepare() => PrepareImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task PrepareAsync(CancellationToken cancellationToken = default) => PrepareImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0
+		public Task PrepareAsync(CancellationToken cancellationToken = default)
+#else
+		public override Task PrepareAsync(CancellationToken cancellationToken = default)
+#endif
+			=> PrepareImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		internal async Task PrepareImpl(AsyncWrappingCommonArgs async)
 		{
 			CheckCommand();

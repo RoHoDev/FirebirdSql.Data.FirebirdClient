@@ -59,10 +59,12 @@ namespace FirebirdSql.Data.FirebirdClient
 			get { return _connection; }
 		}
 
+#if !(NET48 || NETSTANDARD2_0 || NETSTANDARD2_1)
 		public override bool SupportsSavepoints
 		{
 			get { return true; }
 		}
+#endif
 
 		#endregion
 
@@ -142,7 +144,12 @@ namespace FirebirdSql.Data.FirebirdClient
 		#region Methods
 
 		public override void Commit() => CommitImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task CommitAsync(CancellationToken cancellationToken = default) => CommitImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+		public Task CommitAsync(CancellationToken cancellationToken = default)
+#else
+		public override Task CommitAsync(CancellationToken cancellationToken = default)
+#endif
+			=> CommitImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		internal async Task CommitImpl(AsyncWrappingCommonArgs async)
 		{
 			EnsureCompleted();
@@ -158,7 +165,12 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		public override void Rollback() => RollbackImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task RollbackAsync(CancellationToken cancellationToken = default) => RollbackImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+		public Task RollbackAsync(CancellationToken cancellationToken = default)
+#else
+		public override Task RollbackAsync(CancellationToken cancellationToken = default)
+#endif
+			=> RollbackImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		internal async Task RollbackImpl(AsyncWrappingCommonArgs async)
 		{
 			EnsureCompleted();
@@ -173,8 +185,18 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public override void Save(string savePointName) => SaveImpl(savePointName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task SaveAsync(string savePointName, CancellationToken cancellationToken = default) => SaveImpl(savePointName, new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+		public void Save(string savePointName)
+#else
+		public override void Save(string savePointName)
+#endif
+			=> SaveImpl(savePointName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+		public Task SaveAsync(string savePointName, CancellationToken cancellationToken = default)
+#else
+		public override Task SaveAsync(string savePointName, CancellationToken cancellationToken = default)
+#endif
+			=> SaveImpl(savePointName, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task SaveImpl(string savePointName, AsyncWrappingCommonArgs async)
 		{
 			EnsureSavePointName(savePointName);
@@ -192,10 +214,18 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public void Commit(string savePointName) => ReleaseImpl(savePointName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public Task CommitAsync(string savePointName, CancellationToken cancellationToken = default) => ReleaseImpl(savePointName, new AsyncWrappingCommonArgs(true, cancellationToken));
-		public override void Release(string savePointName) => ReleaseImpl(savePointName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task ReleaseAsync(string savePointName, CancellationToken cancellationToken = default) => ReleaseImpl(savePointName, new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+		public void Release(string savePointName)
+#else
+		public override void Release(string savePointName)
+#endif
+			=> ReleaseImpl(savePointName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+		public Task ReleaseAsync(string savePointName, CancellationToken cancellationToken = default)
+#else
+		public override Task ReleaseAsync(string savePointName, CancellationToken cancellationToken = default)
+#endif
+			=> ReleaseImpl(savePointName, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task ReleaseImpl(string savePointName, AsyncWrappingCommonArgs async)
 		{
 			EnsureSavePointName(savePointName);
@@ -213,8 +243,18 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public override void Rollback(string savePointName) => RollbackImpl(savePointName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task RollbackAsync(string savePointName, CancellationToken cancellationToken = default) => RollbackImpl(savePointName, new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+		public void Rollback(string savePointName)
+#else
+		public override void Rollback(string savePointName)
+#endif
+			=> RollbackImpl(savePointName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+		public Task RollbackAsync(string savePointName, CancellationToken cancellationToken = default)
+#else
+		public override Task RollbackAsync(string savePointName, CancellationToken cancellationToken = default)
+#endif
+			=> RollbackImpl(savePointName, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task RollbackImpl(string savePointName, AsyncWrappingCommonArgs async)
 		{
 			EnsureSavePointName(savePointName);

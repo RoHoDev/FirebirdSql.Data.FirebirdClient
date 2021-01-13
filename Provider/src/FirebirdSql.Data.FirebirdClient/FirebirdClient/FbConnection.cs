@@ -296,9 +296,19 @@ namespace FirebirdSql.Data.FirebirdClient
 		#region Transaction Handling Methods
 
 		public new FbTransaction BeginTransaction() => BeginTransaction(IsolationLevel.ReadCommitted, null);
-		public new Task<FbTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default) => BeginTransactionAsync(IsolationLevel.ReadCommitted, null, cancellationToken);
+#if NET48 || NETSTANDARD2_0
+		public Task<FbTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+#else
+		public new Task<FbTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+#endif
+			=> BeginTransactionAsync(IsolationLevel.ReadCommitted, null, cancellationToken);
 		public new FbTransaction BeginTransaction(IsolationLevel level) => BeginTransaction(level, null);
-		public new Task<FbTransaction> BeginTransactionAsync(IsolationLevel level, CancellationToken cancellationToken = default) => BeginTransactionAsync(level, null, cancellationToken);
+#if NET48 || NETSTANDARD2_0
+		public Task<FbTransaction> BeginTransactionAsync(IsolationLevel level, CancellationToken cancellationToken = default)
+#else
+		public new Task<FbTransaction> BeginTransactionAsync(IsolationLevel level, CancellationToken cancellationToken = default)
+#endif
+			=> BeginTransactionAsync(level, null, cancellationToken);
 		public FbTransaction BeginTransaction(string transactionName) => BeginTransaction(IsolationLevel.ReadCommitted, transactionName);
 		public Task<FbTransaction> BeginTransactionAsync(string transactionName, CancellationToken cancellationToken = default) => BeginTransactionAsync(IsolationLevel.ReadCommitted, transactionName, cancellationToken);
 		public FbTransaction BeginTransaction(IsolationLevel level, string transactionName) => BeginTransactionImpl(level, transactionName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
@@ -322,27 +332,44 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		protected override DbTransaction BeginDbTransaction(IsolationLevel isolationLevel) => BeginTransaction(isolationLevel);
+#if !(NET48 || NETSTANDARD2_0)
 		protected override async ValueTask<DbTransaction> BeginDbTransactionAsync(IsolationLevel isolationLevel, CancellationToken cancellationToken) => await BeginTransactionAsync(isolationLevel, cancellationToken).ConfigureAwait(false);
+#endif
 
 		#endregion
 
 		#region Database Schema Methods
 
 		public override DataTable GetSchema() => GetSchemaImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task<DataTable> GetSchemaAsync(CancellationToken cancellationToken = default) => GetSchemaImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0
+		public Task<DataTable> GetSchemaAsync(CancellationToken cancellationToken = default)
+#else
+		public override Task<DataTable> GetSchemaAsync(CancellationToken cancellationToken = default)
+#endif
+			=> GetSchemaImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private Task<DataTable> GetSchemaImpl(AsyncWrappingCommonArgs async)
 		{
 			return GetSchemaImpl("MetaDataCollections", async);
 		}
 
 		public override DataTable GetSchema(string collectionName) => GetSchemaImpl(collectionName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task<DataTable> GetSchemaAsync(string collectionName, CancellationToken cancellationToken = default) => GetSchemaImpl(collectionName, new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0
+		public Task<DataTable> GetSchemaAsync(string collectionName, CancellationToken cancellationToken = default)
+#else
+		public override Task<DataTable> GetSchemaAsync(string collectionName, CancellationToken cancellationToken = default)
+#endif
+			=> GetSchemaImpl(collectionName, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private Task<DataTable> GetSchemaImpl(string collectionName, AsyncWrappingCommonArgs async)
 		{
 			return GetSchemaImpl(collectionName, null, async);
 		}
 		public override DataTable GetSchema(string collectionName, string[] restrictions) => GetSchemaImpl(collectionName, restrictions, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task<DataTable> GetSchemaAsync(string collectionName, string[] restrictions, CancellationToken cancellationToken = default) => GetSchemaImpl(collectionName, restrictions, new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0
+		public Task<DataTable> GetSchemaAsync(string collectionName, string[] restrictions, CancellationToken cancellationToken = default)
+#else
+		public override Task<DataTable> GetSchemaAsync(string collectionName, string[] restrictions, CancellationToken cancellationToken = default)
+#endif
+			=> GetSchemaImpl(collectionName, restrictions, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private Task<DataTable> GetSchemaImpl(string collectionName, string[] restrictions, AsyncWrappingCommonArgs async)
 		{
 			CheckClosed();
@@ -365,7 +392,12 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		public override void ChangeDatabase(string db) => ChangeDatabaseImpl(db, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task ChangeDatabaseAsync(string db, CancellationToken cancellationToken = default) => ChangeDatabaseImpl(db, new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0
+		public Task ChangeDatabaseAsync(string db, CancellationToken cancellationToken = default)
+#else
+		public override Task ChangeDatabaseAsync(string db, CancellationToken cancellationToken = default)
+#endif
+			=> ChangeDatabaseImpl(db, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task ChangeDatabaseImpl(string db, AsyncWrappingCommonArgs async)
 		{
 			CheckClosed();
@@ -478,7 +510,12 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		public override void Close() => CloseImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task CloseAsync() => CloseImpl(new AsyncWrappingCommonArgs(true, CancellationToken.None));
+#if NET48 || NETSTANDARD2_0
+		public Task CloseAsync()
+#else
+		public override Task CloseAsync()
+#endif
+			=> CloseImpl(new AsyncWrappingCommonArgs(true, CancellationToken.None));
 		private async Task CloseImpl(AsyncWrappingCommonArgs async)
 		{
 			if (!IsClosed && _innerConnection != null)

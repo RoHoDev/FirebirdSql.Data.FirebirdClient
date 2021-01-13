@@ -245,7 +245,12 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		public override DataTable GetSchemaTable() => GetSchemaTableImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-		public override Task<DataTable> GetSchemaTableAsync(CancellationToken cancellationToken = default) => GetSchemaTableImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+		public Task<DataTable> GetSchemaTableAsync(CancellationToken cancellationToken = default)
+#else
+		public override Task<DataTable> GetSchemaTableAsync(CancellationToken cancellationToken = default)
+#endif
+			=> GetSchemaTableImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task<DataTable> GetSchemaTableImpl(AsyncWrappingCommonArgs async)
 		{
 			CheckState();
@@ -809,7 +814,11 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+#if NET48 || NETSTANDARD2_0
+		private static T CheckedGetValue<T>(Func<AsyncWrappingCommonArgs, Task<T>> getter)
+#else
 		private static T CheckedGetValue<T>(Func<AsyncWrappingCommonArgs, ValueTask<T>> getter)
+#endif
 		{
 			try
 			{
