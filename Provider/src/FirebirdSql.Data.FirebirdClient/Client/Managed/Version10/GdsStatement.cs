@@ -167,11 +167,10 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 
 		#region Array Creation Methods
 
-		public override async Task<ArrayBase> CreateArray(ArrayDesc descriptor, AsyncWrappingCommonArgs async)
+		public override Task<ArrayBase> CreateArray(ArrayDesc descriptor, AsyncWrappingCommonArgs async)
 		{
 			var array = new GdsArray(descriptor);
-			await array.Initialize(async).ConfigureAwait(false);
-			return array;
+			return Task.FromResult((ArrayBase)array);
 		}
 
 		public override async Task<ArrayBase> CreateArray(string tableName, string fieldName, AsyncWrappingCommonArgs async)
