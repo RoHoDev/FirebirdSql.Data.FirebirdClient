@@ -253,6 +253,7 @@ namespace FirebirdSql.Data.Client.Managed
 			{
 #if NET48 || NETSTANDARD2_0
 				_firebirdNetworkStream.Dispose();
+				await Task.CompletedTask.ConfigureAwait(false);
 #else
 				await async.AsyncSyncCallNoCancellation(_firebirdNetworkStream.DisposeAsync, _firebirdNetworkStream.Dispose).ConfigureAwait(false);
 #endif

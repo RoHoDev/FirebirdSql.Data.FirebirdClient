@@ -603,6 +603,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			{
 #if NET48 || NETSTANDARD2_0
 				_activeReader.Dispose();
+				await Task.CompletedTask.ConfigureAwait(false);
 #else
 				await async.AsyncSyncCallNoCancellation(_activeReader.DisposeAsync, _activeReader.Dispose).ConfigureAwait(false);
 #endif
