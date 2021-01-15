@@ -26,7 +26,7 @@ namespace FirebirdSql.Data.Client.Managed
 {
 	class FirebirdNetworkStream : Stream, ITracksIOFailure
 	{
-#warning ASYNC
+#warning ASYNC wrapping methods
 		public const string CompressionName = "zlib";
 		public const string EncryptionName = "Arc4";
 
@@ -126,6 +126,12 @@ namespace FirebirdSql.Data.Client.Managed
 			for (var i = 0; i < count; i++)
 				WriteByte(buffer[i]);
 		}
+		public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+		{
+			for (var i = 0; i < count; i++)
+				WriteByte(buffer[i]);
+			return Task.CompletedTask;
+		}
 
 		public override void WriteByte(byte value)
 		{
@@ -157,6 +163,31 @@ namespace FirebirdSql.Data.Client.Managed
 				throw;
 			}
 		}
+		public override async Task FlushAsync(CancellationToken cancellationToken)
+		{
+			var buffer = _outputBuffer.ToArray();
+			_outputBuffer.Clear();
+			var count = buffer.Length;
+			if (_compressor != null)
+			{
+				count = HandleCompression(buffer, count);
+				buffer = _compressionBuffer;
+			}
+			if (_encryptor != null)
+			{
+				_encryptor.ProcessBytes(buffer, 0, count, buffer, 0);
+			}
+			try
+			{
+				await _networkStream.WriteAsync(buffer, 0, count, cancellationToken).ConfigureAwait(false);
+				await _networkStream.FlushAsync().ConfigureAwait(false);
+			}
+			catch (IOException)
+			{
+				IOFailed = true;
+				throw;
+			}
+		}
 
 		public void StartCompression()
 		{
@@ -176,6 +207,13 @@ namespace FirebirdSql.Data.Client.Managed
 			_networkStream.Dispose();
 			base.Dispose(disposing);
 		}
+#if !(NET48 || NETSTANDARD2_0)
+		public async ValueTask DisposeAsync()
+		{
+			await _networkStream.DisposeAsync().ConfigureAwait(false);
+			await base.DisposeAsync().ConfigureAwait(false);
+		}
+#endif
 
 		int ReadFromInputBuffer(byte[] buffer, int offset, int count)
 		{
