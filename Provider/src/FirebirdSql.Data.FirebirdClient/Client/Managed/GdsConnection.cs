@@ -121,8 +121,7 @@ namespace FirebirdSql.Data.Client.Managed
 				var protocols = ProtocolsSupported.Get(_compression);
 				await Xdr.Write(protocols.Count(), async).ConfigureAwait(false);
 
-#warning These out params are ugly, refactor
-				var userIdentificationData = UserIdentificationData(out var srp, out var sspi);
+				var (userIdentificationData, srp, sspi) = UserIdentificationData();
 				using (sspi)
 				{
 					await Xdr.WriteBuffer(userIdentificationData, async).ConfigureAwait(false);
@@ -284,10 +283,10 @@ namespace FirebirdSql.Data.Client.Managed
 			return addresses[0];
 		}
 
-		private byte[] UserIdentificationData(out SrpClient srp, out SspiHelper sspi)
+		private (byte[], SrpClient, SspiHelper) UserIdentificationData()
 		{
-			srp = null;
-			sspi = null;
+			var srp = default(SrpClient);
+			var sspi = default(SspiHelper);
 
 			using (var result = new MemoryStream())
 			{
@@ -349,7 +348,7 @@ namespace FirebirdSql.Data.Client.Managed
 					result.Write(TypeEncoder.EncodeInt32(IscCodes.WIRE_CRYPT_DISABLED), 0, 4);
 				}
 
-				return result.ToArray();
+				return (result.ToArray(), srp, sspi);
 			}
 		}
 
