@@ -180,7 +180,7 @@ namespace FirebirdSql.Data.Client.Managed
 			try
 			{
 				await _networkStream.WriteAsync(buffer, 0, count, cancellationToken).ConfigureAwait(false);
-				await _networkStream.FlushAsync().ConfigureAwait(false);
+				await _networkStream.FlushAsync(cancellationToken).ConfigureAwait(false);
 			}
 			catch (IOException)
 			{
