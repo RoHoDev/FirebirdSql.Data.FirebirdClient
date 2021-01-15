@@ -208,7 +208,7 @@ namespace FirebirdSql.Data.Client.Managed
 			base.Dispose(disposing);
 		}
 #if !(NET48 || NETSTANDARD2_0)
-		public async ValueTask DisposeAsync()
+		public override async ValueTask DisposeAsync()
 		{
 			await _networkStream.DisposeAsync().ConfigureAwait(false);
 			await base.DisposeAsync().ConfigureAwait(false);
