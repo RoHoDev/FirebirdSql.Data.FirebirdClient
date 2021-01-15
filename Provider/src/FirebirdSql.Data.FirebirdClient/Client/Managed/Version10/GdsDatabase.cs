@@ -398,7 +398,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 					var (auxHandle, ipAddress, portNumber) = await ConnectionRequest(async).ConfigureAwait(false);
 					_eventManager = new GdsEventManager(auxHandle, ipAddress, portNumber);
 					await _eventManager.Open(async).ConfigureAwait(false);
-					var dummy = _eventManager.WaitForEvents(remoteEvent, new AsyncWrappingCommonArgs(true, CancellationToken.None));
+					var dummy = _eventManager.WaitForEvents(remoteEvent, new AsyncWrappingCommonArgs(true));
 				}
 
 				remoteEvent.LocalId++;

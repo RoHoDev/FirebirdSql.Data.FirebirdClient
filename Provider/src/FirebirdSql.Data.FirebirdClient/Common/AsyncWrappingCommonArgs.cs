@@ -27,7 +27,7 @@ namespace FirebirdSql.Data.Common
 		public bool IsAsync { get; }
 		public CancellationToken CancellationToken { get; }
 
-		public AsyncWrappingCommonArgs(bool isAsync, CancellationToken cancellationToken)
+		public AsyncWrappingCommonArgs(bool isAsync, CancellationToken cancellationToken = default)
 		{
 			IsAsync = isAsync;
 			CancellationToken = cancellationToken;

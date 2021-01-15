@@ -97,7 +97,7 @@ namespace FirebirdSql.Data.FirebirdClient
 						{
 							try
 							{
-								_transaction.Dispose2(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+								_transaction.Dispose2(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 							}
 							catch (IscException ex)
 							{
@@ -115,7 +115,7 @@ namespace FirebirdSql.Data.FirebirdClient
 #if !(NET48 || NETSTANDARD2_0)
 		public override async ValueTask DisposeAsync()
 		{
-			await DisposeHelper(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+			await DisposeHelper(new AsyncWrappingCommonArgs(true)).ConfigureAwait(false);
 			await base.DisposeAsync().ConfigureAwait(false);
 		}
 #endif
@@ -148,7 +148,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		#region Methods
 
-		public override void Commit() => CommitImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override void Commit() => CommitImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0
 		public Task CommitAsync(CancellationToken cancellationToken = default)
 #else
@@ -169,7 +169,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public override void Rollback() => RollbackImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override void Rollback() => RollbackImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0
 		public Task RollbackAsync(CancellationToken cancellationToken = default)
 #else
@@ -195,7 +195,7 @@ namespace FirebirdSql.Data.FirebirdClient
 #else
 		public override void Save(string savePointName)
 #endif
-			=> SaveImpl(savePointName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+			=> SaveImpl(savePointName, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
 		public Task SaveAsync(string savePointName, CancellationToken cancellationToken = default)
 #else
@@ -224,7 +224,7 @@ namespace FirebirdSql.Data.FirebirdClient
 #else
 		public override void Release(string savePointName)
 #endif
-			=> ReleaseImpl(savePointName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+			=> ReleaseImpl(savePointName, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
 		public Task ReleaseAsync(string savePointName, CancellationToken cancellationToken = default)
 #else
@@ -253,7 +253,7 @@ namespace FirebirdSql.Data.FirebirdClient
 #else
 		public override void Rollback(string savePointName)
 #endif
-			=> RollbackImpl(savePointName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+			=> RollbackImpl(savePointName, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
 		public Task RollbackAsync(string savePointName, CancellationToken cancellationToken = default)
 #else
@@ -277,7 +277,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public void CommitRetaining() => CommitRetainingImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public void CommitRetaining() => CommitRetainingImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task CommitRetainingAsync(CancellationToken cancellationToken = default) => CommitRetainingImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task CommitRetainingImpl(AsyncWrappingCommonArgs async)
 		{
@@ -292,7 +292,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public void RollbackRetaining() => RollbackRetainingImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public void RollbackRetaining() => RollbackRetainingImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task RollbackRetainingAsync(CancellationToken cancellationToken = default) => RollbackRetainingImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task RollbackRetainingImpl(AsyncWrappingCommonArgs async)
 		{

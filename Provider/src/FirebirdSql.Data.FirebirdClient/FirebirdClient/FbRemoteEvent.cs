@@ -42,7 +42,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			_connection = new FbConnectionInternal(new ConnectionString(connectionString));
 		}
 
-		public void Open() => OpenImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public void Open() => OpenImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task OpenAsync(CancellationToken cancellationToken = default) => OpenImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task OpenImpl(AsyncWrappingCommonArgs async)
 		{
@@ -56,16 +56,16 @@ namespace FirebirdSql.Data.FirebirdClient
 			_synchronizationContext = SynchronizationContext.Current ?? new SynchronizationContext();
 		}
 
-		public void Dispose() => DisposeImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public void Dispose() => DisposeImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if !(NET48 || NETSTANDARD2_0)
-		public async ValueTask DisposeAsync() => await DisposeImpl(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+		public async ValueTask DisposeAsync() => await DisposeImpl(new AsyncWrappingCommonArgs(true)).ConfigureAwait(false);
 #endif
 		private Task DisposeImpl(AsyncWrappingCommonArgs async)
 		{
 			return _connection.Disconnect(async);
 		}
 
-		public void QueueEvents(params string[] events) => QueueEventsImpl(events, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public void QueueEvents(params string[] events) => QueueEventsImpl(events, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task QueueEventsAsync(string[] events, CancellationToken cancellationToken = default) => QueueEventsImpl(events, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task QueueEventsImpl(string[] events, AsyncWrappingCommonArgs async)
 		{
@@ -82,7 +82,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public void CancelEvents() => CancelEventsImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public void CancelEvents() => CancelEventsImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task CancelEventsAsync(CancellationToken cancellationToken) => CancelEventsImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task CancelEventsImpl(AsyncWrappingCommonArgs async)
 		{

@@ -55,7 +55,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		#region Static Database Creation/Drop methods
 
-		public static void CreateDatabase(string connectionString, int pageSize = 4096, bool forcedWrites = true, bool overwrite = false) => CreateDatabaseImpl(connectionString, pageSize, forcedWrites, overwrite, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public static void CreateDatabase(string connectionString, int pageSize = 4096, bool forcedWrites = true, bool overwrite = false) => CreateDatabaseImpl(connectionString, pageSize, forcedWrites, overwrite, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public static Task CreateDatabaseAsync(string connectionString, int pageSize = 4096, bool forcedWrites = true, bool overwrite = false, CancellationToken cancellationToken = default) => CreateDatabaseImpl(connectionString, pageSize, forcedWrites, overwrite, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private static async Task CreateDatabaseImpl(string connectionString, int pageSize, bool forcedWrites, bool overwrite, AsyncWrappingCommonArgs async)
 		{
@@ -80,7 +80,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public static void DropDatabase(string connectionString) => DropDatabaseImpl(connectionString, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public static void DropDatabase(string connectionString) => DropDatabaseImpl(connectionString, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public static Task DropDatabaseAsync(string connectionString, CancellationToken cancellationToken = default) => DropDatabaseImpl(connectionString, new AsyncWrappingCommonArgs(true, cancellationToken));
 		static async Task DropDatabaseImpl(string connectionString, AsyncWrappingCommonArgs async)
 		{
@@ -257,14 +257,14 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			if (disposing)
 			{
-				DisposeHelper(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+				DisposeHelper(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 			}
 			base.Dispose(disposing);
 		}
 #if !(NET48 || NETSTANDARD2_0)
 		public override async ValueTask DisposeAsync()
 		{
-			await DisposeHelper(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+			await DisposeHelper(new AsyncWrappingCommonArgs(true)).ConfigureAwait(false);
 			await base.DisposeAsync().ConfigureAwait(false);
 		}
 #endif
@@ -309,7 +309,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			=> BeginTransactionAsync(level, null, cancellationToken);
 		public FbTransaction BeginTransaction(string transactionName) => BeginTransaction(IsolationLevel.ReadCommitted, transactionName);
 		public Task<FbTransaction> BeginTransactionAsync(string transactionName, CancellationToken cancellationToken = default) => BeginTransactionAsync(IsolationLevel.ReadCommitted, transactionName, cancellationToken);
-		public FbTransaction BeginTransaction(IsolationLevel level, string transactionName) => BeginTransactionImpl(level, transactionName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public FbTransaction BeginTransaction(IsolationLevel level, string transactionName) => BeginTransactionImpl(level, transactionName, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task<FbTransaction> BeginTransactionAsync(IsolationLevel level, string transactionName, CancellationToken cancellationToken = default) => BeginTransactionImpl(level, transactionName, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private Task<FbTransaction> BeginTransactionImpl(IsolationLevel level, string transactionName, AsyncWrappingCommonArgs async)
 		{
@@ -320,7 +320,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		public FbTransaction BeginTransaction(FbTransactionOptions options) => BeginTransaction(options, null);
 		public Task<FbTransaction> BeginTransactionAsync(FbTransactionOptions options, CancellationToken cancellationToken = default) => BeginTransactionAsync(options, null, cancellationToken);
-		public FbTransaction BeginTransaction(FbTransactionOptions options, string transactionName) => BeginTransactionImpl(options, transactionName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public FbTransaction BeginTransaction(FbTransactionOptions options, string transactionName) => BeginTransactionImpl(options, transactionName, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task<FbTransaction> BeginTransactionAsync(FbTransactionOptions options, string transactionName, CancellationToken cancellationToken = default) => BeginTransactionImpl(options, transactionName, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private Task<FbTransaction> BeginTransactionImpl(FbTransactionOptions options, string transactionName, AsyncWrappingCommonArgs async)
 		{
@@ -338,7 +338,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		#region Database Schema Methods
 
-		public override DataTable GetSchema() => GetSchemaImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override DataTable GetSchema() => GetSchemaImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
 		public Task<DataTable> GetSchemaAsync(CancellationToken cancellationToken = default)
 #else
@@ -350,7 +350,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			return GetSchemaImpl("MetaDataCollections", async);
 		}
 
-		public override DataTable GetSchema(string collectionName) => GetSchemaImpl(collectionName, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override DataTable GetSchema(string collectionName) => GetSchemaImpl(collectionName, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
 		public Task<DataTable> GetSchemaAsync(string collectionName, CancellationToken cancellationToken = default)
 #else
@@ -361,7 +361,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			return GetSchemaImpl(collectionName, null, async);
 		}
-		public override DataTable GetSchema(string collectionName, string[] restrictions) => GetSchemaImpl(collectionName, restrictions, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override DataTable GetSchema(string collectionName, string[] restrictions) => GetSchemaImpl(collectionName, restrictions, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
 		public Task<DataTable> GetSchemaAsync(string collectionName, string[] restrictions, CancellationToken cancellationToken = default)
 #else
@@ -389,7 +389,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			return new FbCommand(null, this);
 		}
 
-		public override void ChangeDatabase(string db) => ChangeDatabaseImpl(db, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override void ChangeDatabase(string db) => ChangeDatabaseImpl(db, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0
 		public Task ChangeDatabaseAsync(string db, CancellationToken cancellationToken = default)
 #else
@@ -427,7 +427,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public override void Open() => OpenImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override void Open() => OpenImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public override Task OpenAsync(CancellationToken cancellationToken) => OpenImpl(new AsyncWrappingCommonArgs(false, cancellationToken));
 		private async Task OpenImpl(AsyncWrappingCommonArgs async)
 		{
@@ -507,13 +507,13 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public override void Close() => CloseImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override void Close() => CloseImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0
 		public Task CloseAsync()
 #else
 		public override Task CloseAsync()
 #endif
-			=> CloseImpl(new AsyncWrappingCommonArgs(true, CancellationToken.None));
+			=> CloseImpl(new AsyncWrappingCommonArgs(true));
 		internal async Task CloseImpl(AsyncWrappingCommonArgs async)
 		{
 			if (!IsClosed && _innerConnection != null)
@@ -598,7 +598,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		#endregion
 
 		#region Cancelation
-		public void EnableCancel() => EnableCancelImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public void EnableCancel() => EnableCancelImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task EnableCancelAsync(CancellationToken cancellationToken = default) => EnableCancelImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private Task EnableCancelImpl(AsyncWrappingCommonArgs async)
 		{
@@ -607,7 +607,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			return _innerConnection.EnableCancel(async);
 		}
 
-		public void DisableCancel() => DisableCancelImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public void DisableCancel() => DisableCancelImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task DisableCancelAsync(CancellationToken cancellationToken = default) => DisableCancelImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private Task DisableCancelImpl(AsyncWrappingCommonArgs async)
 		{
@@ -616,7 +616,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			return _innerConnection.DisableCancel(async);
 		}
 
-		public void CancelCommand() => CancelCommandImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public void CancelCommand() => CancelCommandImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task CancelCommandAsync(CancellationToken cancellationToken = default) => CancelCommandImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private Task CancelCommandImpl(AsyncWrappingCommonArgs async)
 		{

@@ -64,7 +64,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			{
 				if (_commandText != value && _statement != null)
 				{
-					Release(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+					Release(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 				}
 
 				_commandText = value;
@@ -114,7 +114,7 @@ namespace FirebirdSql.Data.FirebirdClient
 					_connection != value &&
 					_connection.State == ConnectionState.Open)
 				{
-					Release(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+					Release(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 				}
 
 				_connection = value;
@@ -147,7 +147,7 @@ namespace FirebirdSql.Data.FirebirdClient
 					throw new InvalidOperationException("There is already an open DataReader associated with this Command which must be closed first.");
 				}
 
-				RollbackImplicitTransaction(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+				RollbackImplicitTransaction(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 
 				_transaction = value;
 
@@ -333,14 +333,14 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			if (disposing)
 			{
-				DisposeHelper(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+				DisposeHelper(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 			}
 			base.Dispose(disposing);
 		}
 #if !(NET48 || NETSTANDARD2_0)
 		public override async ValueTask DisposeAsync()
 		{
-			await DisposeHelper(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+			await DisposeHelper(new AsyncWrappingCommonArgs(true)).ConfigureAwait(false);
 			await base.DisposeAsync().ConfigureAwait(false);
 		}
 #endif
@@ -411,7 +411,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			return new FbParameter();
 		}
 
-		public override void Prepare() => PrepareImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override void Prepare() => PrepareImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 #if NET48 || NETSTANDARD2_0
 		public Task PrepareAsync(CancellationToken cancellationToken = default)
 #else
@@ -438,7 +438,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		public override int ExecuteNonQuery() => ExecuteNonQueryImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override int ExecuteNonQuery() => ExecuteNonQueryImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public override Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken) => ExecuteNonQueryImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		internal async Task<int> ExecuteNonQueryImpl(AsyncWrappingCommonArgs async)
 		{
@@ -476,7 +476,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		public new FbDataReader ExecuteReader() => ExecuteReader(CommandBehavior.Default);
-		public new FbDataReader ExecuteReader(CommandBehavior behavior) => ExecuteReaderImpl(behavior, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public new FbDataReader ExecuteReader(CommandBehavior behavior) => ExecuteReaderImpl(behavior, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public new Task<FbDataReader> ExecuteReaderAsync() => ExecuteReaderAsync(CommandBehavior.Default);
 		public new Task<FbDataReader> ExecuteReaderAsync(CommandBehavior behavior) => ExecuteReaderAsync(behavior, CancellationToken.None);
 		public new Task<FbDataReader> ExecuteReaderAsync(CancellationToken cancellationToken) => ExecuteReaderAsync(CommandBehavior.Default, cancellationToken);
@@ -505,7 +505,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			return _activeReader;
 		}
 
-		public override object ExecuteScalar() => ExecuteScalarImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public override object ExecuteScalar() => ExecuteScalarImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public override Task<object> ExecuteScalarAsync(CancellationToken cancellationToken) => ExecuteScalarImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		internal async Task<object> ExecuteScalarImpl(AsyncWrappingCommonArgs async)
 		{
@@ -552,7 +552,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			return val;
 		}
 
-		public string GetCommandPlan() => GetCommandPlanImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public string GetCommandPlan() => GetCommandPlanImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task<string> GetCommandPlanAsync(CancellationToken cancellationToken = default) => GetCommandPlanImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private Task<string> GetCommandPlanImpl(AsyncWrappingCommonArgs async)
 		{
@@ -563,7 +563,7 @@ namespace FirebirdSql.Data.FirebirdClient
 			return _statement.GetExecutionPlan(async);
 		}
 
-		public string GetCommandExplainedPlan() => GetCommandExplainedPlanImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+		public string GetCommandExplainedPlan() => GetCommandExplainedPlanImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
 		public Task<string> GetCommanExplaineddPlanAsync(CancellationToken cancellationToken = default) => GetCommandExplainedPlanImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private Task<string> GetCommandExplainedPlanImpl(AsyncWrappingCommonArgs async)
 		{
