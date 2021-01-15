@@ -46,6 +46,9 @@ namespace FirebirdSql.Data.FirebirdClient
 		public Task OpenAsync(CancellationToken cancellationToken = default) => OpenImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task OpenImpl(AsyncWrappingCommonArgs async)
 		{
+			if (_revent != null)
+				throw new InvalidOperationException($"{nameof(FbRemoteEvent)} already open.");
+
 			await _connection.Connect(async).ConfigureAwait(false);
 			_revent = new RemoteEvent(_connection.Database);
 			_revent.EventCountsCallback = OnRemoteEventCounts;
@@ -66,6 +69,9 @@ namespace FirebirdSql.Data.FirebirdClient
 		public Task QueueEventsAsync(string[] events, CancellationToken cancellationToken = default) => QueueEventsImpl(events, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private async Task QueueEventsImpl(string[] events, AsyncWrappingCommonArgs async)
 		{
+			if (_revent == null)
+				throw new InvalidOperationException($"{nameof(FbRemoteEvent)} must be opened.");
+
 			try
 			{
 				await _revent.QueueEvents(events, async).ConfigureAwait(false);
