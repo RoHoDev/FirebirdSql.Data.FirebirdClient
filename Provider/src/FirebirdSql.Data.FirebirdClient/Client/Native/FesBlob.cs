@@ -182,11 +182,6 @@ namespace FirebirdSql.Data.Client.Native
 			throw new NotSupportedException();
 		}
 
-		protected override void GetBlobInfo()
-		{
-			throw new NotSupportedException();
-		}
-
 		protected override Task Close(AsyncWrappingCommonArgs async)
 		{
 			ClearStatusVector();

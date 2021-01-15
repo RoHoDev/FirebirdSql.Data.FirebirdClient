@@ -131,8 +131,6 @@ namespace FirebirdSql.Data.Common
 		protected abstract Task GetSegment(Stream stream, AsyncWrappingCommonArgs async);
 		protected abstract Task PutSegment(byte[] buffer, AsyncWrappingCommonArgs async);
 		protected abstract Task Seek(int position, AsyncWrappingCommonArgs async);
-#warning This is not implemented anywhere. Remove?
-		protected abstract void GetBlobInfo();
 		protected abstract Task Close(AsyncWrappingCommonArgs async);
 		protected abstract Task Cancel(AsyncWrappingCommonArgs async);
 

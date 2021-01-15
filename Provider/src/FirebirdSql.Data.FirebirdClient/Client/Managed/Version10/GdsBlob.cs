@@ -189,11 +189,6 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			}
 		}
 
-		protected override void GetBlobInfo()
-		{
-			throw new NotSupportedException();
-		}
-
 		protected override Task Close(AsyncWrappingCommonArgs async)
 		{
 			return _database.ReleaseObject(IscCodes.op_close_blob, _blobHandle, async);
