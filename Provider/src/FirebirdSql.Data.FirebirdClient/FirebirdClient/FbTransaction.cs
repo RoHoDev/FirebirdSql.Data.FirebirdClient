@@ -25,9 +25,6 @@ using FirebirdSql.Data.Common;
 namespace FirebirdSql.Data.FirebirdClient
 {
 	public sealed class FbTransaction : DbTransaction
-#if NET48 || NETSTANDARD2_0
-		, IAsyncDisposable
-#endif
 	{
 		#region Fields
 
@@ -115,8 +112,14 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 			base.Dispose(disposing);
 		}
-
+#if !(NET48 || NETSTANDARD2_0)
 		public override async ValueTask DisposeAsync()
+		{
+			await DisposeHelper(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+			await base.DisposeAsync().ConfigureAwait(false);
+		}
+#endif
+		private async Task DisposeHelper(AsyncWrappingCommonArgs async)
 		{
 			if (!_disposed)
 			{
@@ -127,7 +130,7 @@ namespace FirebirdSql.Data.FirebirdClient
 					{
 						try
 						{
-							await _transaction.Dispose2(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+							await _transaction.Dispose2(async).ConfigureAwait(false);
 						}
 						catch (IscException ex)
 						{
@@ -139,7 +142,6 @@ namespace FirebirdSql.Data.FirebirdClient
 				_transaction = null;
 				_isCompleted = true;
 			}
-			await base.DisposeAsync().ConfigureAwait(false);
 		}
 
 		#endregion
@@ -147,7 +149,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		#region Methods
 
 		public override void Commit() => CommitImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+#if NET48 || NETSTANDARD2_0
 		public Task CommitAsync(CancellationToken cancellationToken = default)
 #else
 		public override Task CommitAsync(CancellationToken cancellationToken = default)
@@ -168,7 +170,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		}
 
 		public override void Rollback() => RollbackImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+#if NET48 || NETSTANDARD2_0
 		public Task RollbackAsync(CancellationToken cancellationToken = default)
 #else
 		public override Task RollbackAsync(CancellationToken cancellationToken = default)

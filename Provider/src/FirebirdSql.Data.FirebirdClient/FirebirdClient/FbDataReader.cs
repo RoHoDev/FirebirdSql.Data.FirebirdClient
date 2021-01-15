@@ -30,9 +30,6 @@ using FirebirdSql.Data.Common;
 namespace FirebirdSql.Data.FirebirdClient
 {
 	public sealed class FbDataReader : DbDataReader
-#if NET48 || NETSTANDARD2_0
-		, IAsyncDisposable
-#endif
 	{
 		#region Constants
 
@@ -141,48 +138,14 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		#region DbDataReader overriden methods
 
-		public override void Close()
-		{
-			Dispose();
-		}
-		public override async Task CloseAsync()
-		{
-			await DisposeAsync().ConfigureAwait(false);
-		}
-
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing)
-			{
-				if (!IsClosed)
-				{
-					_isClosed = true;
-					if (_command != null && !_command.IsDisposed)
-					{
-						if (_command.CommandType == CommandType.StoredProcedure)
-						{
-							_command.SetOutputParameters(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-						}
-						if (_command.HasImplicitTransaction)
-						{
-							_command.CommitImplicitTransaction(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-						}
-						_command.ActiveReader = null;
-					}
-					if (_connection != null && IsCommandBehavior(CommandBehavior.CloseConnection))
-					{
-						_connection.Close();
-					}
-					_position = StartPosition;
-					_command = null;
-					_connection = null;
-					_row = null;
-					_schemaTable = null;
-					_fields = null;
-				}
-			}
-		}
-		public override async ValueTask DisposeAsync()
+		public override void Close() => CloseImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+#if NET48 || NETSTANDARD2_0
+		public Task CloseAsync()
+#else
+		public override Task CloseAsync()
+#endif
+			=> CloseImpl(new AsyncWrappingCommonArgs(true, CancellationToken.None));
+		private async Task CloseImpl(AsyncWrappingCommonArgs async)
 		{
 			if (!IsClosed)
 			{
@@ -191,17 +154,17 @@ namespace FirebirdSql.Data.FirebirdClient
 				{
 					if (_command.CommandType == CommandType.StoredProcedure)
 					{
-						_command.SetOutputParameters(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
+						await _command.SetOutputParameters(async).ConfigureAwait(false);
 					}
 					if (_command.HasImplicitTransaction)
 					{
-						await _command.CommitImplicitTransaction(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+						await _command.CommitImplicitTransaction(async).ConfigureAwait(false);
 					}
 					_command.ActiveReader = null;
 				}
 				if (_connection != null && IsCommandBehavior(CommandBehavior.CloseConnection))
 				{
-					await _connection.CloseAsync().ConfigureAwait(false);
+					await _connection.CloseImpl(async).ConfigureAwait(false);
 				}
 				_position = StartPosition;
 				_command = null;
@@ -211,6 +174,21 @@ namespace FirebirdSql.Data.FirebirdClient
 				_fields = null;
 			}
 		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				Close();
+			}
+		}
+#if !(NET48 || NETSTANDARD2_0)
+		public override async ValueTask DisposeAsync()
+		{
+			await CloseAsync().ConfigureAwait(false);
+			await base.DisposeAsync().ConfigureAwait(false);
+		}
+#endif
 
 		public override bool Read() => ReadImpl(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
 		public override Task<bool> ReadAsync(CancellationToken cancellationToken) => ReadImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
@@ -293,6 +271,7 @@ namespace FirebirdSql.Data.FirebirdClient
 				schemaCmd.Parameters[0].Value = _fields[i].Relation;
 				schemaCmd.Parameters[1].Value = _fields[i].Name;
 
+#warning ASYNC (and other places)
 				using (var r = await schemaCmd.ExecuteReaderImpl(CommandBehavior.Default, async).ConfigureAwait(false))
 				{
 					if (await r.ReadImpl(async).ConfigureAwait(false))
@@ -358,7 +337,11 @@ namespace FirebirdSql.Data.FirebirdClient
 
 			_schemaTable.EndLoadData();
 
+#if NET48 || NETSTANDARD2_0
+			schemaCmd.Dispose();
+#else
 			await async.AsyncSyncCallNoCancellation(schemaCmd.DisposeAsync, schemaCmd.Dispose).ConfigureAwait(false);
+#endif
 
 			return _schemaTable;
 		}
@@ -667,9 +650,9 @@ namespace FirebirdSql.Data.FirebirdClient
 			return Task.FromResult(false);
 		}
 
-		#endregion
+#endregion
 
-		#region Private Methods
+#region Private Methods
 
 		private void CheckPosition()
 		{
@@ -737,9 +720,9 @@ namespace FirebirdSql.Data.FirebirdClient
 			return index;
 		}
 
-		#endregion
+#endregion
 
-		#region Static Methods
+#region Static Methods
 
 		private static bool IsReadOnly(FbDataReader r)
 		{
@@ -829,6 +812,6 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		#endregion
+#endregion
 	}
 }

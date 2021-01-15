@@ -29,9 +29,6 @@ using FirebirdSql.Data.Logging;
 namespace FirebirdSql.Data.FirebirdClient
 {
 	public sealed class FbCommand : DbCommand, ICloneable
-#if NET48 || NETSTANDARD2_0
-		, IAsyncDisposable
-#endif
 	{
 		static readonly IFbLogger Log = FbLogManager.CreateLogger(nameof(FbCommand));
 
@@ -336,35 +333,23 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			if (disposing)
 			{
-				if (!_disposed)
-				{
-					_disposed = true;
-					Release(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
-					_commandTimeout = 0;
-					_fetchSize = 0;
-					_implicitTransaction = false;
-					_commandText = null;
-					_connection = null;
-					_transaction = null;
-					_parameters = null;
-					_statement = null;
-					_activeReader = null;
-					if (_namedParameters != null)
-					{
-						_namedParameters.Clear();
-						_namedParameters = null;
-					}
-				}
+				DisposeHelper(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
 			}
 			base.Dispose(disposing);
 		}
-
+#if !(NET48 || NETSTANDARD2_0)
 		public override async ValueTask DisposeAsync()
+		{
+			await DisposeHelper(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+			await base.DisposeAsync().ConfigureAwait(false);
+		}
+#endif
+		private async Task DisposeHelper(AsyncWrappingCommonArgs async)
 		{
 			if (!_disposed)
 			{
 				_disposed = true;
-				await Release(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+				await Release(async).ConfigureAwait(false);
 				_commandTimeout = 0;
 				_fetchSize = 0;
 				_implicitTransaction = false;
@@ -380,7 +365,6 @@ namespace FirebirdSql.Data.FirebirdClient
 					_namedParameters = null;
 				}
 			}
-			await base.DisposeAsync().ConfigureAwait(false);
 		}
 
 		#endregion
@@ -617,7 +601,11 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			if (_activeReader != null)
 			{
+#if NET48 || NETSTANDARD2_0
+				_activeReader.Dispose();
+#else
 				await async.AsyncSyncCallNoCancellation(_activeReader.DisposeAsync, _activeReader.Dispose).ConfigureAwait(false);
+#endif
 				_activeReader = null;
 			}
 		}
@@ -702,7 +690,11 @@ namespace FirebirdSql.Data.FirebirdClient
 				{
 					if (_transaction != null)
 					{
+#if NET48 || NETSTANDARD2_0
+						_transaction.Dispose();
+#else
 						await async.AsyncSyncCallNoCancellation(_transaction.DisposeAsync, _transaction.Dispose).ConfigureAwait(false);
+#endif
 						_transaction = null;
 						_implicitTransaction = false;
 					}
@@ -734,7 +726,11 @@ namespace FirebirdSql.Data.FirebirdClient
 				}
 				finally
 				{
+#if NET48 || NETSTANDARD2_0
+					_transaction.Dispose();
+#else
 					await async.AsyncSyncCallNoCancellation(_transaction.DisposeAsync, _transaction.Dispose).ConfigureAwait(false);
+#endif
 					_transaction = null;
 					_implicitTransaction = false;
 

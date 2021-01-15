@@ -252,14 +252,18 @@ namespace FirebirdSql.Data.Client.Managed
 		{
 			if (_firebirdNetworkStream != null)
 			{
+#if NET48 || NETSTANDARD2_0
+				_firebirdNetworkStream.Dispose();
+#else
 				await async.AsyncSyncCallNoCancellation(_firebirdNetworkStream.DisposeAsync, _firebirdNetworkStream.Dispose).ConfigureAwait(false);
+#endif
 				_firebirdNetworkStream = null;
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region Private Methods
+#region Private Methods
 
 		private async Task<IPAddress> GetIPAddress(string dataSource, AsyncWrappingCommonArgs async)
 		{
@@ -349,9 +353,9 @@ namespace FirebirdSql.Data.Client.Managed
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region Static Methods
+#region Static Methods
 
 		public static async Task<IResponse> ProcessOperation(int operation, IXdrReader xdr, AsyncWrappingCommonArgs async)
 		{
@@ -451,6 +455,6 @@ namespace FirebirdSql.Data.Client.Managed
 			}
 		}
 
-		#endregion
+#endregion
 	}
 }

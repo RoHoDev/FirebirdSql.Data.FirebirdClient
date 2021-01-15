@@ -29,7 +29,6 @@ using FirebirdSql.Data.Schema;
 
 namespace FirebirdSql.Data.FirebirdClient
 {
-#warning All the DisposeAsync wrap into Impl as rest of the code
 	internal class FbConnectionInternal
 	{
 		#region Fields
@@ -275,7 +274,11 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			if (_activeTransaction != null && !IsEnlisted)
 			{
+#if NET48 || NETSTANDARD2_0
+				_activeTransaction.Dispose();
+#else
 				await async.AsyncSyncCallNoCancellation(_activeTransaction.DisposeAsync, _activeTransaction.Dispose).ConfigureAwait(false);
+#endif
 				_activeTransaction = null;
 			}
 		}
@@ -292,9 +295,9 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region Transaction Enlistment
+#region Transaction Enlistment
 
 		public void EnlistTransaction(System.Transactions.Transaction transaction)
 		{
@@ -337,18 +340,18 @@ namespace FirebirdSql.Data.FirebirdClient
 			return BeginTransaction(il, null, async);
 		}
 
-		#endregion
+#endregion
 
-		#region Schema Methods
+#region Schema Methods
 
 		public Task<DataTable> GetSchema(string collectionName, string[] restrictions, AsyncWrappingCommonArgs async)
 		{
 			return FbSchemaFactory.GetSchema(_owningConnection, collectionName, restrictions, async);
 		}
 
-		#endregion
+#endregion
 
-		#region Prepared Commands Methods
+#region Prepared Commands Methods
 
 		public void AddPreparedCommand(FbCommand command)
 		{
@@ -385,9 +388,9 @@ namespace FirebirdSql.Data.FirebirdClient
 			}
 		}
 
-		#endregion
+#endregion
 
-		#region Firebird Events Methods
+#region Firebird Events Methods
 
 		public Task CloseEventManager(AsyncWrappingCommonArgs async)
 		{
@@ -398,9 +401,9 @@ namespace FirebirdSql.Data.FirebirdClient
 			return Task.CompletedTask;
 		}
 
-		#endregion
+#endregion
 
-		#region Private Methods
+#region Private Methods
 
 		private void EnsureActiveTransaction()
 		{
@@ -495,9 +498,9 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			return typeof(FbConnectionInternal).GetTypeInfo().Assembly.GetName().Version.ToString();
 		}
-		#endregion
+#endregion
 
-		#region Cancelation
+#region Cancelation
 		public async Task EnableCancel(AsyncWrappingCommonArgs async)
 		{
 			await _db.CancelOperation(IscCodes.fb_cancel_enable, async).ConfigureAwait(false);
@@ -514,14 +517,14 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			return _db.CancelOperation(IscCodes.fb_cancel_raise, async);
 		}
-		#endregion
+#endregion
 
-		#region Infrastructure
+#region Infrastructure
 		public FbConnectionInternal SetOwningConnection(FbConnection owningConnection)
 		{
 			_owningConnection = owningConnection;
 			return this;
 		}
-		#endregion
+#endregion
 	}
 }

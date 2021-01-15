@@ -27,9 +27,6 @@ namespace FirebirdSql.Data.FirebirdClient
 {
 	[DefaultEvent("InfoMessage")]
 	public sealed class FbConnection : DbConnection, ICloneable
-#if NET48 || NETSTANDARD2_0
-		, IAsyncDisposable
-#endif
 	{
 		#region Static Pool Handling Methods
 
@@ -260,29 +257,27 @@ namespace FirebirdSql.Data.FirebirdClient
 		{
 			if (disposing)
 			{
-				if (!_disposed)
-				{
-					_disposed = true;
-					Close();
-					_innerConnection = null;
-					_options = null;
-					_connectionString = null;
-				}
+				DisposeHelper(new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
 			}
 			base.Dispose(disposing);
 		}
-
+#if !(NET48 || NETSTANDARD2_0)
 		public override async ValueTask DisposeAsync()
+		{
+			await DisposeHelper(new AsyncWrappingCommonArgs(true, CancellationToken.None)).ConfigureAwait(false);
+			await base.DisposeAsync().ConfigureAwait(false);
+		}
+#endif
+		private async Task DisposeHelper(AsyncWrappingCommonArgs async)
 		{
 			if (!_disposed)
 			{
 				_disposed = true;
-				await CloseAsync().ConfigureAwait(false);
+				await CloseImpl(async).ConfigureAwait(false);
 				_innerConnection = null;
 				_options = null;
 				_connectionString = null;
 			}
-			await base.DisposeAsync().ConfigureAwait(false);
 		}
 
 		#endregion
@@ -519,7 +514,7 @@ namespace FirebirdSql.Data.FirebirdClient
 		public override Task CloseAsync()
 #endif
 			=> CloseImpl(new AsyncWrappingCommonArgs(true, CancellationToken.None));
-		private async Task CloseImpl(AsyncWrappingCommonArgs async)
+		internal async Task CloseImpl(AsyncWrappingCommonArgs async)
 		{
 			if (!IsClosed && _innerConnection != null)
 			{
