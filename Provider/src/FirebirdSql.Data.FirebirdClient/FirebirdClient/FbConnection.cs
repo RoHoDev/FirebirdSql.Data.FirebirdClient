@@ -55,7 +55,7 @@ namespace FirebirdSql.Data.FirebirdClient
 
 		#region Static Database Creation/Drop methods
 
-		public static void CreateDatabase(string connectionString, int pageSize = 4096, bool forcedWrites = true, bool overwrite = false) => CreateDatabaseImpl(connectionString, pageSize, forcedWrites, overwrite, new AsyncWrappingCommonArgs(true, CancellationToken.None)).GetAwaiter().GetResult();
+		public static void CreateDatabase(string connectionString, int pageSize = 4096, bool forcedWrites = true, bool overwrite = false) => CreateDatabaseImpl(connectionString, pageSize, forcedWrites, overwrite, new AsyncWrappingCommonArgs(false, CancellationToken.None)).GetAwaiter().GetResult();
 		public static Task CreateDatabaseAsync(string connectionString, int pageSize = 4096, bool forcedWrites = true, bool overwrite = false, CancellationToken cancellationToken = default) => CreateDatabaseImpl(connectionString, pageSize, forcedWrites, overwrite, new AsyncWrappingCommonArgs(true, cancellationToken));
 		private static async Task CreateDatabaseImpl(string connectionString, int pageSize, bool forcedWrites, bool overwrite, AsyncWrappingCommonArgs async)
 		{
