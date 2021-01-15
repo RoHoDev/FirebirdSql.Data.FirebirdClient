@@ -147,7 +147,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			{
 				await SendAttachToBuffer(dpb, database, async).ConfigureAwait(false);
 				await Xdr.Flush(async).ConfigureAwait(false);
-				await ProcessAttachResponse(await ReadResponse<GenericResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false);
+				await ProcessAttachResponse((GenericResponse)await ReadResponse(async).ConfigureAwait(false), async).ConfigureAwait(false);
 			}
 			catch (IscException)
 			{
@@ -263,7 +263,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			{
 				await SendCreateToBuffer(dpb, database, async).ConfigureAwait(false);
 				await Xdr.Flush(async).ConfigureAwait(false);
-				await ProcessCreateResponse(await ReadResponse<GenericResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false);
+				await ProcessCreateResponse((GenericResponse)await ReadResponse(async).ConfigureAwait(false), async).ConfigureAwait(false);
 			}
 			catch (IOException ex)
 			{
@@ -575,22 +575,18 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			return Xdr.ReadOperation(async);
 		}
 
-#warning Remove this overload and make the TResponse flow more down
-		public Task<IResponse> ReadResponse(AsyncWrappingCommonArgs async) => ReadResponse<IResponse>(async);
-		public virtual async Task<TResponse> ReadResponse<TResponse>(AsyncWrappingCommonArgs async) where TResponse : IResponse
+		public virtual async Task<IResponse> ReadResponse(AsyncWrappingCommonArgs async)
 		{
 			var response = await ReadSingleResponse(async).ConfigureAwait(false);
 			ProcessResponse(response);
-			return (TResponse)response;
+			return response;
 		}
 
-#warning Remove this overload and make the TResponse flow more down
-		public Task<IResponse> ReadResponse(int operation, AsyncWrappingCommonArgs async) => ReadResponse<IResponse>(operation, async);
-		public virtual async Task<TResponse> ReadResponse<TResponse>(int operation, AsyncWrappingCommonArgs async) where TResponse : IResponse
+		public virtual async Task<IResponse> ReadResponse(int operation, AsyncWrappingCommonArgs async)
 		{
 			var response = await ReadSingleResponse(operation, async).ConfigureAwait(false);
 			ProcessResponse(response);
-			return (TResponse)response;
+			return response;
 		}
 
 		#endregion

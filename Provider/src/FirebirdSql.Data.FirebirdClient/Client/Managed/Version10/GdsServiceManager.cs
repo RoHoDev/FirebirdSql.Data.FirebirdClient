@@ -82,7 +82,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 			{
 				await SendAttachToBuffer(spb, service, async).ConfigureAwait(false);
 				await _database.Xdr.Flush(async).ConfigureAwait(false);
-				await ProcessAttachResponse(await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false);
+				await ProcessAttachResponse((GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false), async).ConfigureAwait(false);
 			}
 			catch (IOException ex)
 			{
@@ -176,7 +176,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 
 				await _database.Xdr.Flush(async).ConfigureAwait(false);
 
-				var response = await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false);
+				var response = (GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 
 				var responseLength = bufferLength;
 

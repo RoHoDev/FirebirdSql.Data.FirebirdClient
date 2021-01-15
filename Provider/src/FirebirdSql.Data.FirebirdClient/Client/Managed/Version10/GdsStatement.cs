@@ -201,16 +201,16 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 				{
 					await SendAllocateToBuffer(async).ConfigureAwait(false);
 					await _database.Xdr.Flush(async).ConfigureAwait(false);
-					await ProcessAllocateResponse(await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false);
+					await ProcessAllocateResponse((GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false), async).ConfigureAwait(false);
 				}
 
 				await SendPrepareToBuffer(commandText, async).ConfigureAwait(false);
 				await _database.Xdr.Flush(async).ConfigureAwait(false);
-				await ProcessPrepareResponse(await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false);
+				await ProcessPrepareResponse((GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false), async).ConfigureAwait(false);
 
 				await SendInfoSqlToBuffer(StatementTypeInfoItems, IscCodes.STATEMENT_TYPE_BUFFER_SIZE, async).ConfigureAwait(false);
 				await _database.Xdr.Flush(async).ConfigureAwait(false);
-				StatementType = ProcessStatementTypeInfoBuffer(await ProcessInfoSqlResponse(await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false));
+				StatementType = ProcessStatementTypeInfoBuffer(await ProcessInfoSqlResponse((GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false), async).ConfigureAwait(false));
 
 				State = StatementState.Prepared;
 			}
@@ -235,17 +235,17 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 
 				if (StatementType == DbStatementType.StoredProcedure)
 				{
-					await ProcessStoredProcedureExecuteResponse(await _database.ReadResponse<SqlResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false);
+					await ProcessStoredProcedureExecuteResponse((SqlResponse)await _database.ReadResponse(async).ConfigureAwait(false), async).ConfigureAwait(false);
 				}
 
-				var executeResponse = await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false);
+				var executeResponse = (GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 				await ProcessExecuteResponse(executeResponse, async).ConfigureAwait(false);
 
 				if (DoRecordsAffected)
 				{
 					await SendInfoSqlToBuffer(RowsAffectedInfoItems, IscCodes.ROWS_AFFECTED_BUFFER_SIZE, async).ConfigureAwait(false);
 					await _database.Xdr.Flush(async).ConfigureAwait(false);
-					RecordsAffected = ProcessRecordsAffectedBuffer(await ProcessInfoSqlResponse(await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false));
+					RecordsAffected = ProcessRecordsAffectedBuffer(await ProcessInfoSqlResponse((GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false), async).ConfigureAwait(false));
 				}
 				else
 				{
@@ -393,7 +393,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 		{
 			await DoInfoSqlPacket(items, bufferLength, async).ConfigureAwait(false);
 			await _database.Xdr.Flush(async).ConfigureAwait(false);
-			return await ProcessInfoSqlResponse(await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false), async).ConfigureAwait(false);
+			return await ProcessInfoSqlResponse((GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false), async).ConfigureAwait(false);
 		}
 
 		protected async Task DoInfoSqlPacket(byte[] items, int bufferLength, AsyncWrappingCommonArgs async)

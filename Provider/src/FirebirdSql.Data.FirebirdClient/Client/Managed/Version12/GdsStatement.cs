@@ -59,12 +59,12 @@ namespace FirebirdSql.Data.Client.Managed.Version12
 					if (StatementType == DbStatementType.StoredProcedure)
 					{
 						numberOfResponses--;
-						sqlStoredProcedureResponse = await _database.ReadResponse<SqlResponse>(async).ConfigureAwait(false);
+						sqlStoredProcedureResponse = (SqlResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 						await ProcessStoredProcedureExecuteResponse(sqlStoredProcedureResponse, async).ConfigureAwait(false);
 					}
 
 					numberOfResponses--;
-					var executeResponse = await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false);
+					var executeResponse = (GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 					await ProcessExecuteResponse(executeResponse, async).ConfigureAwait(false);
 				}
 				finally
@@ -84,7 +84,7 @@ namespace FirebirdSql.Data.Client.Managed.Version12
 					try
 					{
 						numberOfResponses--;
-						var rowsAffectedResponse = await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false);
+						var rowsAffectedResponse = (GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 						RecordsAffected = ProcessRecordsAffectedBuffer(await ProcessInfoSqlResponse(rowsAffectedResponse, async).ConfigureAwait(false));
 					}
 					finally

@@ -130,7 +130,7 @@ namespace FirebirdSql.Data.Client.Managed.Version10
 				await _database.Xdr.WriteBytes(slice, slice.Length, async).ConfigureAwait(false);
 				await _database.Xdr.Flush(async).ConfigureAwait(false);
 
-				var response = await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false);
+				var response = (GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 
 				_handle = response.BlobId;
 			}

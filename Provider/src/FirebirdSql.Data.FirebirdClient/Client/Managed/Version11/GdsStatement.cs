@@ -64,15 +64,15 @@ namespace FirebirdSql.Data.Client.Managed.Version11
 					if (State == StatementState.Deallocated)
 					{
 						numberOfResponses--;
-						allocateResponse = await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false);
+						allocateResponse = (GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 					}
 
 					numberOfResponses--;
-					var prepareResponse = await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false);
+					var prepareResponse = (GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 					var deferredExecute = ((prepareResponse.ObjectHandle & IscCodes.STMT_DEFER_EXECUTE) == IscCodes.STMT_DEFER_EXECUTE);
 
 					numberOfResponses--;
-					var statementTypeResponse = await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false);
+					var statementTypeResponse = (GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 
 					if (allocateResponse != null)
 					{
@@ -124,18 +124,18 @@ namespace FirebirdSql.Data.Client.Managed.Version11
 					if (StatementType == DbStatementType.StoredProcedure)
 					{
 						numberOfResponses--;
-						sqlStoredProcedureResponse = await _database.ReadResponse<SqlResponse>(async).ConfigureAwait(false);
+						sqlStoredProcedureResponse = (SqlResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 						await ProcessStoredProcedureExecuteResponse(sqlStoredProcedureResponse, async).ConfigureAwait(false);
 					}
 
 					numberOfResponses--;
-					var executeResponse = await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false);
+					var executeResponse = (GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 
 					GenericResponse rowsAffectedResponse = null;
 					if (readRowsAffectedResponse)
 					{
 						numberOfResponses--;
-						rowsAffectedResponse = await _database.ReadResponse<GenericResponse>(async).ConfigureAwait(false);
+						rowsAffectedResponse = (GenericResponse)await _database.ReadResponse(async).ConfigureAwait(false);
 					}
 
 					await ProcessExecuteResponse(executeResponse, async).ConfigureAwait(false);
