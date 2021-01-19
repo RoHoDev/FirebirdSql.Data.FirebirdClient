@@ -124,18 +124,13 @@ namespace FirebirdSql.Data.Client.Managed
 		public override void Write(byte[] buffer, int offset, int count)
 		{
 			for (var i = 0; i < count; i++)
-				WriteByte(buffer[i]);
+				_outputBuffer.Enqueue(buffer[i]);
 		}
 		public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
 		{
 			for (var i = 0; i < count; i++)
-				WriteByte(buffer[i]);
+				_outputBuffer.Enqueue(buffer[i]);
 			return Task.CompletedTask;
-		}
-
-		public override void WriteByte(byte value)
-		{
-			_outputBuffer.Enqueue(value);
 		}
 
 		public override void Flush()
