@@ -21,12 +21,13 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using FirebirdSql.Data.Common;
 
 namespace FirebirdSql.Data.Client.Managed
 {
+#warning Does this need to be a stream?
 	class FirebirdNetworkStream : Stream, ITracksIOFailure
 	{
-#warning ASYNC wrapping methods
 		public const string CompressionName = "zlib";
 		public const string EncryptionName = "Arc4";
 
@@ -56,7 +57,9 @@ namespace FirebirdSql.Data.Client.Managed
 
 		public bool IOFailed { get; set; }
 
-		public override int Read(byte[] buffer, int offset, int count)
+		public override int Read(byte[] buffer, int offset, int count) => ReadImpl(buffer, offset, count, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
+		public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => ReadImpl(buffer, offset, count, new AsyncWrappingCommonArgs(true, cancellationToken));
+		private async Task<int> ReadImpl(byte[] buffer, int offset, int count, AsyncWrappingCommonArgs async)
 		{
 			if (_inputBuffer.Count < count)
 			{
@@ -64,39 +67,7 @@ namespace FirebirdSql.Data.Client.Managed
 				int read;
 				try
 				{
-					read = _networkStream.Read(readBuffer, 0, readBuffer.Length);
-				}
-				catch (IOException)
-				{
-					IOFailed = true;
-					throw;
-				}
-				if (read != 0)
-				{
-					if (_decryptor != null)
-					{
-						_decryptor.ProcessBytes(readBuffer, 0, read, readBuffer, 0);
-					}
-					if (_decompressor != null)
-					{
-						read = HandleDecompression(readBuffer, read);
-						readBuffer = _compressionBuffer;
-					}
-					WriteToInputBuffer(readBuffer, read);
-				}
-			}
-			var dataLength = ReadFromInputBuffer(buffer, offset, count);
-			return dataLength;
-		}
-		public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-		{
-			if (_inputBuffer.Count < count)
-			{
-				var readBuffer = _readBuffer;
-				int read;
-				try
-				{
-					read = await _networkStream.ReadAsync(readBuffer, 0, readBuffer.Length, cancellationToken).ConfigureAwait(false);
+					read = await async.AsyncSyncCall(_networkStream.ReadAsync, _networkStream.Read, readBuffer, 0, readBuffer.Length).ConfigureAwait(false);
 				}
 				catch (IOException)
 				{
@@ -121,19 +92,18 @@ namespace FirebirdSql.Data.Client.Managed
 			return dataLength;
 		}
 
-		public override void Write(byte[] buffer, int offset, int count)
+		public override void Write(byte[] buffer, int offset, int count) => WriteImpl(buffer, offset, count, new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
+		public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => WriteImpl(buffer, offset, count, new AsyncWrappingCommonArgs(true, cancellationToken));
+		private Task WriteImpl(byte[] buffer, int offset, int count, AsyncWrappingCommonArgs async)
 		{
-			for (var i = 0; i < count; i++)
-				_outputBuffer.Enqueue(buffer[i]);
-		}
-		public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-		{
-			for (var i = 0; i < count; i++)
-				_outputBuffer.Enqueue(buffer[i]);
+			for (var i = offset; i < count; i++)
+				_outputBuffer.Enqueue(buffer[offset + i]);
 			return Task.CompletedTask;
 		}
 
-		public override void Flush()
+		public override void Flush() => FlushImpl(new AsyncWrappingCommonArgs(false)).GetAwaiter().GetResult();
+		public override Task FlushAsync(CancellationToken cancellationToken) => FlushImpl(new AsyncWrappingCommonArgs(true, cancellationToken));
+		private async Task FlushImpl(AsyncWrappingCommonArgs async)
 		{
 			var buffer = _outputBuffer.ToArray();
 			_outputBuffer.Clear();
@@ -149,33 +119,8 @@ namespace FirebirdSql.Data.Client.Managed
 			}
 			try
 			{
-				_networkStream.Write(buffer, 0, count);
-				_networkStream.Flush();
-			}
-			catch (IOException)
-			{
-				IOFailed = true;
-				throw;
-			}
-		}
-		public override async Task FlushAsync(CancellationToken cancellationToken)
-		{
-			var buffer = _outputBuffer.ToArray();
-			_outputBuffer.Clear();
-			var count = buffer.Length;
-			if (_compressor != null)
-			{
-				count = HandleCompression(buffer, count);
-				buffer = _compressionBuffer;
-			}
-			if (_encryptor != null)
-			{
-				_encryptor.ProcessBytes(buffer, 0, count, buffer, 0);
-			}
-			try
-			{
-				await _networkStream.WriteAsync(buffer, 0, count, cancellationToken).ConfigureAwait(false);
-				await _networkStream.FlushAsync(cancellationToken).ConfigureAwait(false);
+				await async.AsyncSyncCall(_networkStream.WriteAsync, _networkStream.Write, buffer, 0, count).ConfigureAwait(false);
+				await async.AsyncSyncCall(_networkStream.FlushAsync, _networkStream.Flush).ConfigureAwait(false);
 			}
 			catch (IOException)
 			{
