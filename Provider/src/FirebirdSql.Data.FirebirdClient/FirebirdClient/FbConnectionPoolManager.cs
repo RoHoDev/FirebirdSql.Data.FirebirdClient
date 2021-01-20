@@ -91,7 +91,15 @@ namespace FirebirdSql.Data.FirebirdClient
 				}
 				if (createdNew)
 				{
-					connection.Connect();
+					try
+					{
+						connection.Connect();
+					}
+					catch (Exception ex)
+					{
+						_busy.Remove(connection);
+						throw ex;
+					}
 				}
 				connection.SetOwningConnection(owner);
 				return connection;
