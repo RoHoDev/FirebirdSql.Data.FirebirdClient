@@ -208,7 +208,12 @@ namespace FirebirdSql.Data.FirebirdClient
 			EnsureCompleted();
 			try
 			{
-				using (var command = new FbCommand($"SAVEPOINT {savePointName}", _connection, this))
+				var command = new FbCommand($"SAVEPOINT {savePointName}", _connection, this);
+#if NET48 || NETSTANDARD2_0
+				using (command)
+#else
+				await using (command)
+#endif
 				{
 					await async.AsyncSyncCall(command.ExecuteNonQueryAsync, command.ExecuteNonQuery).ConfigureAwait(false);
 				}
@@ -237,7 +242,12 @@ namespace FirebirdSql.Data.FirebirdClient
 			EnsureCompleted();
 			try
 			{
-				using (var command = new FbCommand($"RELEASE SAVEPOINT {savePointName}", _connection, this))
+				var command = new FbCommand($"RELEASE SAVEPOINT {savePointName}", _connection, this);
+#if NET48 || NETSTANDARD2_0
+				using (command)
+#else
+				await using (command)
+#endif
 				{
 					await async.AsyncSyncCall(command.ExecuteNonQueryAsync, command.ExecuteNonQuery).ConfigureAwait(false);
 				}
@@ -266,7 +276,12 @@ namespace FirebirdSql.Data.FirebirdClient
 			EnsureCompleted();
 			try
 			{
-				using (var command = new FbCommand($"ROLLBACK WORK TO SAVEPOINT {savePointName}", _connection, this))
+				var command = new FbCommand($"ROLLBACK WORK TO SAVEPOINT {savePointName}", _connection, this);
+#if NET48 || NETSTANDARD2_0
+				using (command)
+#else
+				await using (command)
+#endif
 				{
 					await async.AsyncSyncCall(command.ExecuteNonQueryAsync, command.ExecuteNonQuery).ConfigureAwait(false);
 				}

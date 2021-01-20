@@ -271,8 +271,12 @@ namespace FirebirdSql.Data.FirebirdClient
 				schemaCmd.Parameters[0].Value = _fields[i].Relation;
 				schemaCmd.Parameters[1].Value = _fields[i].Name;
 
-#warning ASYNC (and other places)
-				using (var r = await schemaCmd.ExecuteReaderImpl(CommandBehavior.Default, async).ConfigureAwait(false))
+				var r = await schemaCmd.ExecuteReaderImpl(CommandBehavior.Default, async).ConfigureAwait(false);
+#if NET48 || NETSTANDARD2_0
+				using (r)
+#else
+				await using (r)
+#endif
 				{
 					if (await r.ReadImpl(async).ConfigureAwait(false))
 					{
