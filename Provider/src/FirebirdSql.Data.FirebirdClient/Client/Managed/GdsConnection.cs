@@ -21,6 +21,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FirebirdSql.Data.Client.Managed.Version11;
 using FirebirdSql.Data.Client.Managed.Version13;
@@ -95,8 +96,12 @@ namespace FirebirdSql.Data.Client.Managed
 				socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, 1);
 				socket.TrySetKeepAlive(KeepAliveTime, KeepAliveInterval);
 				socket.TryEnableLoopbackFastPath();
-#warning on NET5_0 use the extension method
-				await async.AsyncSyncCallNoCancellation(e => Task.Factory.FromAsync(socket.BeginConnect, socket.EndConnect, e, null), socket.Connect, endPoint).ConfigureAwait(false);
+#if NET48 || NETSTANDARD2_0 || NETSTANDARD2_1
+				static Func<IPEndPoint, CancellationToken, Task> ConnectHelper(Socket socket) => (e, ct) => Task.Factory.FromAsync(socket.BeginConnect, socket.EndConnect, e, null);
+#else
+				static Func<IPEndPoint, CancellationToken, Task> ConnectHelper(Socket socket) => (e, ct) => SocketTaskExtensions.ConnectAsync(socket, e, ct).AsTask();
+#endif
+				await async.AsyncSyncCall(ConnectHelper(socket), socket.Connect, endPoint).ConfigureAwait(false);
 
 				_firebirdNetworkStream = new FirebirdNetworkStream(new NetworkStream(socket, true));
 				Xdr = new XdrReaderWriter(_firebirdNetworkStream, _charset);
